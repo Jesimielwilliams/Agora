@@ -56,6 +56,19 @@ if (process.argv.includes('--reset')) {
 // Geo-tagged Accounts"). Those become real rows here, with trust tiers assigned
 // by kind — the crawler will register the rest.
 // ---------------------------------------------------------------------------
+// Every row is filled out to the same shape below. A batch upsert sends one
+// column list for the whole array, so a field present on some rows and absent
+// on others arrives as an explicit NULL for the rest — which defeats the
+// column's default and trips its NOT NULL constraint.
+const SOURCE_DEFAULTS = {
+  homepage: null,
+  feed_url: null,
+  sitemap_url: null,
+  crawl_allowed: false,
+  crawl_delay_seconds: 5,
+  active: true
+};
+
 const SEED_SOURCES = [
   { name: 'INEC', kind: 'official', trust_tier: 1, homepage: 'https://inecnigeria.org', crawl_allowed: true },
   { name: 'YIAGA Africa', kind: 'observer', trust_tier: 2, homepage: 'https://yiaga.org', crawl_allowed: true },
@@ -64,8 +77,12 @@ const SEED_SOURCES = [
   { name: 'Premium Times', kind: 'media', trust_tier: 3, homepage: 'https://premiumtimesng.com', feed_url: 'https://www.premiumtimesng.com/feed' },
   { name: 'Punch Metro', kind: 'media', trust_tier: 3, homepage: 'https://punchng.com', feed_url: 'https://punchng.com/feed/' },
   { name: 'Channels Television', kind: 'media', trust_tier: 3, homepage: 'https://channelstv.com' },
+  // Official, but an interested party in incidents involving security forces,
+  // so tiered below the electoral commission rather than alongside it.
+  { name: 'Nigeria Police Force', kind: 'official', trust_tier: 2 },
+  { name: 'Local Observer Network', kind: 'observer', trust_tier: 2 },
   { name: 'Citizen Report', kind: 'citizen', trust_tier: 5 }
-];
+].map(source => ({ ...SOURCE_DEFAULTS, ...source }));
 
 const sources = await upsert('sources', SEED_SOURCES, 'name');
 const sourceByName = new Map(sources.map(s => [s.name, s.id]));
@@ -75,47 +92,58 @@ console.log(`sources: ${sources.length}`);
 // Jurisdictions — states, then LGAs, then the polling units on record
 // ---------------------------------------------------------------------------
 const stateNames = [...new Set(Object.values(data.locations).map(l => l.state))];
-const states = await upsert(
-  'jurisdictions',
-  stateNames.map(name => ({ kind: 'state', name, path: `/${name}` })),
-  'code'
-);
 
-// upsert(onConflict: code) cannot match rows whose code is null, so states and
-// LGAs are looked up by name instead of relying on the returned rows.
-async function findJurisdiction(name, kind) {
-  const { data: rows, error } = await db
-    .from('jurisdictions').select('id').eq('kind', kind).ilike('name', name).limit(1);
-  if (error) throw new Error(`lookup ${name}: ${error.message}`);
-  return rows?.[0]?.id ?? null;
+/**
+ * Find-or-insert, rather than upsert.
+ *
+ * The unique index on `code` is partial — only polling units carry codes — and
+ * Postgres will not accept a partial index as an ON CONFLICT target unless the
+ * index predicate is restated, which PostgREST gives no way to express. So
+ * every level is looked up first: by code where there is one, by name where
+ * there is not. Still idempotent, just one round trip more.
+ */
+async function ensureJurisdiction({ kind, name, code = null, parentId = null, path }) {
+  const lookup = db.from('jurisdictions').select('id').eq('kind', kind);
+  const { data: found, error: findError } = await (
+    code ? lookup.eq('code', code) : lookup.ilike('name', name)
+  ).limit(1);
+  if (findError) throw new Error(`lookup ${name}: ${findError.message}`);
+  if (found?.length) return found[0].id;
+
+  const { data: created, error } = await db.from('jurisdictions')
+    .insert({ kind, name, code, parent_id: parentId, path })
+    .select('id');
+  if (error) throw new Error(`insert ${kind} ${name}: ${error.message}`);
+  return created[0].id;
 }
 
 const stateIds = new Map();
-for (const name of stateNames) stateIds.set(name, await findJurisdiction(name, 'state'));
+for (const name of stateNames) {
+  stateIds.set(name, await ensureJurisdiction({ kind: 'state', name, path: `/${name}` }));
+}
 
 const lgaIds = new Map();
 for (const loc of Object.values(data.locations)) {
-  const parent = stateIds.get(loc.state);
-  const existing = await findJurisdiction(loc.lga, 'lga');
-  if (existing) { lgaIds.set(loc.lga, existing); continue; }
-
-  const { data: rows, error } = await db.from('jurisdictions')
-    .insert({ kind: 'lga', name: loc.lga, parent_id: parent, path: `/${loc.state}/${loc.lga}` })
-    .select();
-  if (error) throw new Error(`lga ${loc.lga}: ${error.message}`);
-  lgaIds.set(loc.lga, rows[0].id);
+  lgaIds.set(loc.lga, await ensureJurisdiction({
+    kind: 'lga',
+    name: loc.lga,
+    parentId: stateIds.get(loc.state),
+    path: `/${loc.state}/${loc.lga}`
+  }));
 }
 
-const puRows = (data.pollingUnitRegistry ?? []).map(pu => ({
-  kind: 'polling_unit',
-  name: pu.name,
-  code: pu.code,
-  parent_id: lgaIds.get(pu.lga) ?? null,
-  path: `/${pu.state}/${pu.lga}/${pu.ward ?? ''}/${pu.code}`
-}));
-const pollingUnits = await upsert('jurisdictions', puRows, 'code');
-const puByCode = new Map(pollingUnits.map(p => [p.code, p.id]));
-console.log(`jurisdictions: ${stateNames.length} states, ${lgaIds.size} LGAs, ${pollingUnits.length} polling units`);
+const puByCode = new Map();
+for (const pu of data.pollingUnitRegistry ?? []) {
+  puByCode.set(pu.code, await ensureJurisdiction({
+    kind: 'polling_unit',
+    name: pu.name,
+    code: pu.code,
+    parentId: lgaIds.get(pu.lga) ?? null,
+    path: `/${pu.state}/${pu.lga}/${pu.ward ?? ''}/${pu.code}`
+  }));
+}
+
+console.log(`jurisdictions: ${stateIds.size} states, ${lgaIds.size} LGAs, ${puByCode.size} polling units`);
 
 // ---------------------------------------------------------------------------
 // Monitored areas
@@ -195,19 +223,55 @@ console.log(`incidents: ${incidents.length}`);
 // Provenance. The bundled records carry one free-text attribution each, so each
 // becomes a single source row — real corroboration counts arrive with the
 // crawler, which is the point of the join table.
+// The bundled attributions are free text and usually name more than one body:
+// "INEC Official Log + Premium Times Desk". Each fragment is resolved
+// separately, so an incident two organisations reported is stored as two
+// sources — which is the whole basis of the credibility score. Taking only the
+// first would understate every record.
+const SOURCE_PATTERNS = [
+  [/yiaga/i, 'YIAGA Africa'],
+  [/inec/i, 'INEC'],
+  [/premium times/i, 'Premium Times'],
+  [/channels/i, 'Channels Television'],
+  [/punch/i, 'Punch Metro'],
+  [/police/i, 'Nigeria Police Force'],
+  [/observer/i, 'Local Observer Network'],
+  [/geo-tagged|citizen|submission/i, 'Citizen Report']
+];
+
+function resolveSources(text) {
+  const names = new Set();
+
+  for (const fragment of String(text || '').split(/\s*\+\s*/)) {
+    const match = SOURCE_PATTERNS.find(([pattern]) => pattern.test(fragment));
+    if (match) names.add(match[1]);
+  }
+
+  // An attribution naming nothing recognisable is a citizen report until a
+  // reviewer says otherwise — the cautious reading, not the flattering one.
+  return names.size ? [...names] : ['Citizen Report'];
+}
+
 const provenance = [];
 for (const inc of data.incidents) {
   const incidentId = incidentByRef.get(inc.caseRef);
   if (!incidentId) continue;
 
-  const named = SEED_SOURCES.find(s => (inc.verificationSource || '').includes(s.name));
-  provenance.push({
-    incident_id: incidentId,
-    source_id: sourceByName.get(named?.name ?? 'Citizen Report'),
-    excerpt: inc.verificationSource,
-    is_independent: true
-  });
+  for (const name of resolveSources(inc.verificationSource)) {
+    provenance.push({
+      incident_id: incidentId,
+      source_id: sourceByName.get(name),
+      excerpt: inc.verificationSource,
+      is_independent: true
+    });
+  }
 }
+// Cleared first rather than upserted. The unique key includes `url`, which is
+// null for these bundled records, and Postgres treats nulls as distinct — so
+// the conflict never matches and a re-run would file every attribution again.
+// Duplicated sources would then inflate the credibility score, since it counts
+// independent sources.
+await db.from('incident_sources').delete().is('url', null);
 await upsert('incident_sources', provenance, 'incident_id,source_id,url');
 console.log(`incident sources: ${provenance.length}`);
 
@@ -248,6 +312,11 @@ const alertRows = (data.alerts ?? []).map(a => ({
   last_updated_at: parseRecordTimestamp(a.lastUpdated) ?? new Date().toISOString(),
   published: true
 }));
+// Alerts carry no natural key in the bundled data, so there is nothing to
+// conflict on — every run would insert a fresh set. Cleared first instead;
+// their signals go with them via the cascade.
+await db.from('alerts').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+
 const insertedAlerts = await upsert('alerts', alertRows, 'id');
 console.log(`alerts: ${insertedAlerts.length}`);
 
@@ -278,14 +347,27 @@ console.log(`news: ${newsRows.length}`);
 // Recompute credibility from the provenance just written, rather than trusting
 // the numbers that came out of the bundled file.
 // ---------------------------------------------------------------------------
-const { error: recalcError } = await db.rpc('exec_sql', {
-  sql: 'update incidents set credibility_weight = incident_credibility(id) where published'
-}).catch(() => ({ error: { message: 'exec_sql helper not installed' } }));
+// Recompute credibility from the provenance just written, rather than trusting
+// the figures that came out of the bundled file. incident_credibility() is a
+// plain SQL function, so PostgREST exposes it as a callable endpoint — one call
+// per record, which is fine at this size.
+let recomputed = 0;
+for (const incident of incidents) {
+  const { data: score, error } = await db.rpc('incident_credibility', { p_incident_id: incident.id });
 
-if (recalcError) {
-  console.log('\nNote: credibility not recomputed —', recalcError.message);
-  console.log('Run this once in the SQL editor:');
-  console.log('  update incidents set credibility_weight = incident_credibility(id) where published;');
+  if (error) {
+    console.log(`\nNote: credibility not recomputed — ${error.message}`);
+    console.log('Run this once in the Supabase SQL editor:');
+    console.log('  update incidents set credibility_weight = incident_credibility(id) where published;');
+    break;
+  }
+
+  const { error: updateError } = await db
+    .from('incidents').update({ credibility_weight: score }).eq('id', incident.id);
+  if (updateError) throw new Error(`credibility ${incident.case_ref}: ${updateError.message}`);
+  recomputed += 1;
 }
+
+if (recomputed) console.log(`credibility recomputed: ${recomputed}`);
 
 console.log('\nSeed complete. Next: node scripts/publish-snapshot.mjs');
