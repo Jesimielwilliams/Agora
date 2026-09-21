@@ -2,13 +2,15 @@
  * AGORA LENS - INTERACTIVE MAP ENGINE
  * Real OpenStreetMap of Nigeria (via Leaflet) with state boundaries, hotspot markers & a floating popover.
  * No API key required — tiles come from CARTO's free dark basemap, built on OpenStreetMap data.
- * Requires NIGERIA_STATES_GEOJSON (js/nigeria-states-geo.js) and the Leaflet <script>/<link> in Index.html.
+ * Requires NIGERIA_STATES_GEOJSON (js/nigeria-states-geo.js) and the Leaflet <script>/<link> in index.html.
  */
 
 const NIGERIA_CENTER = [9.082, 8.6753];
 const NIGERIA_DEFAULT_ZOOM = 6.3;
 
-// Real-world coordinates for the 5 locations wired into AGORA_DATA.locations
+// Fallback coordinates, used only when a location carries none of its own.
+// The published snapshot supplies lat/lng per jurisdiction, so adding an area
+// in the database puts it on the map without touching this file.
 const LOCATION_COORDS = {
   'lagos-ikeja': [6.6018, 3.3515],
   'kano-municipal': [12.0022, 8.5920],
@@ -25,6 +27,14 @@ const STATE_NAME_TO_LOCATION = {
   'Rivers': 'rivers-portharcourt',
   'Abuja Federal Capital Territory': 'fct-abuja'
 };
+
+
+/** Where a jurisdiction sits: its own coordinates first, the table second. */
+function coordsFor(locationId) {
+  const loc = AGORA_DATA.locations?.[locationId];
+  if (loc && Number.isFinite(loc.lat) && Number.isFinite(loc.lng)) return [loc.lat, loc.lng];
+  return LOCATION_COORDS[locationId] || null;
+}
 
 class AgoraMapEngine {
   constructor() {
@@ -175,42 +185,30 @@ class AgoraMapEngine {
     this.markers.forEach(m => this.map.removeLayer(m));
     this.markers = [];
 
-    const hotspots = [
-      { id: 'lagos-ikeja', type: 'alert', title: 'Ikeja, Lagos' },
-      { id: 'kano-municipal', type: 'alert', title: 'Kano Municipal' },
-      { id: 'rivers-portharcourt', type: 'alert', title: 'Port Harcourt' },
-      { id: 'kaduna-north', type: 'incident', title: 'Kaduna North' },
-      { id: 'fct-abuja', type: 'incident', title: 'Abuja Municipal' }
-    ];
+    // Every monitored jurisdiction, straight from the data. With 30+ areas on
+    // one national view, markers are small and uniformly coloured on purpose:
+    // sizing or tinting them by severity turned the south-west into one
+    // indistinct blob at this zoom, and the ranked list beside the map already
+    // carries severity far more legibly than a dot can.
+    const markerColor = this.themeColor('--alert-red');
 
-    hotspots.forEach(spot => {
-      const position = LOCATION_COORDS[spot.id];
-      const isAlert = spot.type === 'alert';
-      const color = isAlert ? this.themeColor('--alert-red') : this.themeColor('--accent-cyan');
-
-      // Static outer ring (no animation) so active-alert markers still read as "flagged"
-      if (isAlert) {
-        const ring = L.circleMarker(position, {
-          radius: 13,
-          color,
-          weight: 1.5,
-          opacity: 0.45,
-          fillColor: color,
-          fillOpacity: 0.18,
-          interactive: false
-        }).addTo(this.map);
-        this.markers.push(ring);
-      }
+    Object.values(AGORA_DATA.locations || {}).forEach(loc => {
+      const position = coordsFor(loc.id);
+      if (!position) return;
 
       const marker = L.circleMarker(position, {
-        radius: isAlert ? 7 : 6,
-        color: this.themeColor('--map-state-stroke-active'),
-        weight: 2,
-        fillColor: color,
-        fillOpacity: 1
+        radius: 4.5,
+        color: markerColor,
+        weight: 1,
+        fillColor: markerColor,
+        fillOpacity: 0.85
       }).addTo(this.map);
-      marker.bindTooltip(spot.title, { direction: 'top', offset: [0, -8] });
-      marker.on('click', () => this.selectLocation(spot.id));
+
+      marker.bindTooltip(`${loc.lga || loc.name} · ${loc.incidentsCount ?? 0} documented`, {
+        direction: 'top',
+        offset: [0, -6]
+      });
+      marker.on('click', () => this.selectLocation(loc.id));
       this.markers.push(marker);
     });
   }
@@ -223,7 +221,7 @@ class AgoraMapEngine {
     }
 
     const loc = AGORA_DATA.locations[this.selectedLocationId] || AGORA_DATA.locations['lagos-ikeja'];
-    const coords = LOCATION_COORDS[this.selectedLocationId] || LOCATION_COORDS['lagos-ikeja'];
+    const coords = coordsFor(this.selectedLocationId) || coordsFor('lagos-ikeja');
 
     const html = `
       <div class="map-floating-popover animate-fade-in">

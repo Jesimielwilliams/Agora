@@ -1,0 +1,11 @@
+{
+  "name": "agora-lens",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "publish:data": "cd backend && npm ci --omit=dev && node scripts/publish-snapshot.mjs",
+    "build": "npm run publish:data && node build.mjs",
+    "serve": "python3 -m http.server 8833"
+  }
+}

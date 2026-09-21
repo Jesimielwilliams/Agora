@@ -2,13 +2,13 @@
  * AGORA LENS - SERVICE WORKER
  * Caches the app shell for offline/repeat-visit loading. Only takes effect when the
  * app is served over http(s) — service workers can't register on file:// pages, so
- * this has no effect (and does no harm) if Index.html is opened directly as a file.
+ * this has no effect (and does no harm) if index.html is opened directly as a file.
  */
 
 const CACHE_NAME = 'agora-lens-v9';
 
 const APP_SHELL = [
-  './Index.html',
+  './index.html',
   './css/design-system.css',
   './css/layout.css',
   './css/map.css',
@@ -98,7 +98,7 @@ self.addEventListener('fetch', (event) => {
       .catch(() => caches.match(request).then((cached) => {
         if (cached) return cached;
         // An offline navigation still gets the app shell.
-        if (request.mode === 'navigate') return caches.match('./Index.html');
+        if (request.mode === 'navigate') return caches.match('./index.html');
         return Response.error();
       }))
   );

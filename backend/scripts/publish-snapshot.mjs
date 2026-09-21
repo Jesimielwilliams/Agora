@@ -21,11 +21,20 @@ import { fileURLToPath } from 'node:url';
 const here = dirname(fileURLToPath(import.meta.url));
 const OUT_PATH = resolve(here, '../../data/agora.json');
 
+// Prefers the anon key, and this is deliberate. Publishing only ever reads
+// records that are already public, so it has no business holding a credential
+// that can see drafts — and this script runs on a build server, where secrets
+// are hardest to keep. With the anon key the access rules apply to the
+// publisher too: an unreviewed incident cannot reach the snapshot even if the
+// query asking for it is wrong.
+//
+// Falls back to the service role for local runs where only that is configured.
 const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+const USING_ANON = Boolean(process.env.SUPABASE_ANON_KEY);
 
 if (!SUPABASE_URL || !SUPABASE_KEY) {
-  console.error('Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (see .env.example)');
+  console.error('Set SUPABASE_URL and SUPABASE_ANON_KEY (see .env.example)');
   process.exit(1);
 }
 
@@ -90,6 +99,10 @@ async function build() {
       pollingUnitsCount: area.polling_units_count,
       status: area.status,
       summary: area.summary,
+      // The map plots from these rather than a table baked into map.js, so a
+      // jurisdiction added in the database appears without a code change.
+      lat: area.latitude != null ? Number(area.latitude) : null,
+      lng: area.longitude != null ? Number(area.longitude) : null,
       // Counted from the records, never stored: a stat that disagrees with the
       // list underneath it is worse than no stat.
       incidentsCount: incidents.filter(i => i.area_slug === area.slug).length,
@@ -253,6 +266,10 @@ if (!dryRun && snapshot.incidents.length === 0 && existsSync(OUT_PATH)) {
     process.exit(1);
   }
 }
+
+console.log(USING_ANON
+  ? 'Read with the public key — drafts are invisible to this step by design.'
+  : 'Read with the service-role key. Set SUPABASE_ANON_KEY to use the safer public key.');
 
 if (dryRun) {
   console.log('Dry run — nothing written.');

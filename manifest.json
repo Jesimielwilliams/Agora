@@ -2,7 +2,7 @@
   "name": "Agora Lens",
   "short_name": "Agora Lens",
   "description": "Civic safety and accountability platform for election incident documentation, early warning alerts, and historical violence patterns.",
-  "start_url": "./Index.html",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#151517",

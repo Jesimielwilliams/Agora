@@ -1,1 +1,3 @@
 data/agora.json
+dist/
+node_modules/

@@ -1,0 +1,31 @@
+# Build: pull the published records into data/agora.json, then assemble dist/.
+#
+# SUPABASE_URL and SUPABASE_ANON_KEY must be set in Netlify (Site settings →
+# Environment variables). The anon key is deliberate — the build only reads
+# already-public records, so it never holds a credential that can see drafts.
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# The snapshot is the one file that changes between deploys. Never let a CDN or
+# a browser hold a stale copy: the whole point of republishing is that the data
+# moved.
+[[headers]]
+  for = "/data/agora.json"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# The service worker must never be cached either, or a browser keeps serving an
+# old one and the site cannot be updated at all.
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/Assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

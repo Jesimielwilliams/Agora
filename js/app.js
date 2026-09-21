@@ -852,7 +852,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 // Register the service worker for offline/repeat-visit caching. Only works over
-// http(s) — silently does nothing if Index.html is opened directly as a file.
+// http(s) — silently does nothing if index.html is opened directly as a file.
 if ('serviceWorker' in navigator && (location.protocol === 'http:' || location.protocol === 'https:')) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('sw.js').catch(() => {});
