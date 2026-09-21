@@ -357,12 +357,26 @@ class AgoraApp {
 
     const q = query.toLowerCase().trim();
 
-    const matchingIncidents = AGORA_DATA.incidents.filter(i => 
-      i.title.toLowerCase().includes(q) || i.caseRef.toLowerCase().includes(q) || i.locationCode.toLowerCase().includes(q)
-    );
+    // Every field here is optional in the data: an incident may be filed before
+    // its polling unit is identified, and location resolution is the least
+    // reliable step in the pipeline. Reading a null unguarded threw inside the
+    // input handler, which left the previous results on screen — so a search
+    // that found nothing and a search that crashed looked identical.
+    const matches = (value) => String(value ?? '').toLowerCase().includes(q);
 
-    const matchingLocations = Object.values(AGORA_DATA.locations).filter(l => 
-      l.name.toLowerCase().includes(q) || l.state.toLowerCase().includes(q)
+    const matchingIncidents = AGORA_DATA.incidents.filter(i => {
+      // Searching a place should find what happened there. Incident headlines
+      // name the ward and the venue, not the LGA, so without this a search for
+      // "Maiduguri" returned the jurisdiction and none of its reports.
+      const place = AGORA_DATA.locations?.[i.locationId];
+
+      return matches(i.title) || matches(i.shortTitle) || matches(i.caseRef) ||
+        matches(i.locationCode) || matches(i.precinctArea) || matches(i.category) ||
+        matches(place?.lga) || matches(place?.state) || matches(place?.name);
+    });
+
+    const matchingLocations = Object.values(AGORA_DATA.locations).filter(l =>
+      matches(l.name) || matches(l.state) || matches(l.lga) || matches(l.electoralZone)
     );
 
     let html = '';

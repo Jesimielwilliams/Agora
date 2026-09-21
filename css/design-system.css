@@ -533,3 +533,17 @@ body {
 .animate-fade-in {
   animation: fadeIn 0.3s ease-out forwards;
 }
+
+/* Views fade without moving, and that is deliberate.
+ *
+ * A transform on an element makes it the containing block for every
+ * position:fixed descendant inside it. The page views hold two of those — the
+ * mobile bottom sheet and the full-screen map sheet — so animating a view with
+ * translateY silently broke both for the duration of the animation: the map
+ * sheet sized itself to the page (343x9214) instead of the viewport.
+ *
+ * The 6px slide was imperceptible on a full-page container anyway. */
+@keyframes viewFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

@@ -1,17 +1,24 @@
 # Support hub illustrations
 
-Drop a file here and it replaces the placeholder frame in the matching column
-of the "Respond to Incident" page. No code change needed.
+The four images for the "Respond to Incident" page currently live one level up,
+in `Assets/` itself:
 
-| File         | Column                                  |
-| ------------ | --------------------------------------- |
-| `urgent.svg` | Need help? Call a hotline               |
-| `legal.svg`  | Get legal aid                           |
-| `care.svg`   | Get trauma and safety counseling        |
-| `fund.svg`   | Donate to a legal fund                  |
+| File                     | Column                            |
+| ------------------------ | --------------------------------- |
+| `../Hotline.png`         | Need help? Call a hotline         |
+| `../Legal.png`           | Get legal aid                     |
+| `../Counseling.png`      | Get trauma and safety counseling  |
+| `../Donate.png`          | Donate to a legal fund            |
 
-- The frame is 4:3; artwork is cropped to fill, so keep the subject centred.
-- SVG is expected. To use a raster file instead, change the `src` extension on
-  that column's `<img>` in `Index.html`.
-- Until a file exists the frame shows an "Illustration" placeholder, so the
-  layout never collapses.
+To swap one out, replace the file and keep the name — `index.html` references
+them by exact filename, and the deploy server is case-sensitive even though
+macOS is not.
+
+Notes on what fits well here:
+
+- The frame is 4:3 and the artwork is **contained**, not cropped, with padding
+  around it. Square icons work; so does wider artwork.
+- Transparent backgrounds are fine — the frame supplies its own, which follows
+  the light/dark theme.
+- If a file is missing the frame shows an "Illustration" placeholder rather
+  than a broken image, so the layout never collapses.

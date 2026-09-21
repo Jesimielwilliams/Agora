@@ -16,7 +16,6 @@ const THEMES = ['dark', 'light'];
 
 class AgoraThemeController {
   constructor() {
-    this.media = window.matchMedia('(prefers-color-scheme: light)');
     this.theme = this.resolveInitialTheme();
     this.apply(this.theme, { silent: true });
     this.attachListeners();
@@ -33,8 +32,14 @@ class AgoraThemeController {
     }
   }
 
+  /**
+   * Light is the default. A reader's own stored choice still wins, but the
+   * operating system's preference no longer decides: this is a public civic
+   * site read mostly in daylight and often shared as a link, and it should
+   * look the same to everyone who opens it until they say otherwise.
+   */
   resolveInitialTheme() {
-    return this.storedTheme() || (this.media.matches ? 'light' : 'dark');
+    return this.storedTheme() || 'light';
   }
 
   apply(theme, { silent = false } = {}) {
@@ -71,8 +76,10 @@ class AgoraThemeController {
     const btn = document.getElementById('theme-toggle-btn');
     if (!btn) return;
 
+    // aria-pressed tracks dark, not light: the control is "turn dark mode on",
+    // so its unpressed state has to be the default the site ships in.
     const isLight = this.theme === 'light';
-    btn.setAttribute('aria-pressed', isLight ? 'true' : 'false');
+    btn.setAttribute('aria-pressed', isLight ? 'false' : 'true');
     btn.setAttribute('title', isLight ? 'Switch to dark theme' : 'Switch to light theme');
 
     const label = document.getElementById('theme-toggle-label');
@@ -89,17 +96,9 @@ class AgoraThemeController {
       this.toggle();
     });
 
-    // Follow the system only while no explicit choice has been stored.
-    const onSystemChange = (e) => {
-      if (this.storedTheme()) return;
-      this.apply(e.matches ? 'light' : 'dark');
-    };
-
-    if (typeof this.media.addEventListener === 'function') {
-      this.media.addEventListener('change', onSystemChange);
-    } else if (typeof this.media.addListener === 'function') {
-      this.media.addListener(onSystemChange);
-    }
+    // Deliberately not following the operating system: light is the site's
+    // default for everyone, and a reader's explicit choice is the only thing
+    // that overrides it.
   }
 }
 

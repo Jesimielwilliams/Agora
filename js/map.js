@@ -185,23 +185,41 @@ class AgoraMapEngine {
     this.markers.forEach(m => this.map.removeLayer(m));
     this.markers = [];
 
-    // Every monitored jurisdiction, straight from the data. With 30+ areas on
-    // one national view, markers are small and uniformly coloured on purpose:
-    // sizing or tinting them by severity turned the south-west into one
-    // indistinct blob at this zoom, and the ranked list beside the map already
-    // carries severity far more legibly than a dot can.
+    // Every monitored jurisdiction, straight from the data. One colour for all
+    // of them — with 30+ areas on a national view, tinting by severity turned
+    // the south-west into one indistinct blob, and the ranked list beside the
+    // map carries severity far more legibly than a dot can.
+    //
+    // Size carries volume instead. Scaled on the square root of the count so
+    // the circle's AREA tracks the number of incidents: radius alone would make
+    // a jurisdiction with four times the reports look sixteen times worse.
+    const places = Object.values(AGORA_DATA.locations || {});
+    const counts = places.map(l => l.incidentsCount ?? 0);
+    const fewest = Math.min(...counts);
+    const most = Math.max(...counts);
+    const spread = Math.max(1, most - fewest);
     const markerColor = this.themeColor('--alert-red');
 
-    Object.values(AGORA_DATA.locations || {}).forEach(loc => {
+    // Scaled across the observed range rather than from zero. Monitored
+    // jurisdictions carry broadly similar counts, so a zero-based scale — the
+    // usual advice — compressed every marker into barely a pixel of each other
+    // and encoded nothing at all. This stretches the actual spread instead.
+    //
+    // The trade-off is that the smallest marker means "fewest of these", not
+    // "none": the exact figure is in the tooltip, and the ranked list beside
+    // the map gives the real numbers.
+    const radiusFor = (count) => 3.5 + 5 * (((count ?? 0) - fewest) / spread);
+
+    places.forEach(loc => {
       const position = coordsFor(loc.id);
       if (!position) return;
 
       const marker = L.circleMarker(position, {
-        radius: 4.5,
+        radius: radiusFor(loc.incidentsCount),
         color: markerColor,
         weight: 1,
         fillColor: markerColor,
-        fillOpacity: 0.85
+        fillOpacity: 0.8
       }).addTo(this.map);
 
       marker.bindTooltip(`${loc.lga || loc.name} · ${loc.incidentsCount ?? 0} documented`, {

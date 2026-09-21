@@ -143,6 +143,25 @@ for (const pu of data.pollingUnitRegistry ?? []) {
   }));
 }
 
+// Incidents can name a polling unit the registry has never listed — the
+// registry is a partial extract, not the full INEC directory. Dropping those
+// silently left the incident with no location at all, which is worse than
+// recording the unit exactly as the report gave it.
+for (const inc of data.incidents) {
+  if (!inc.locationCode || puByCode.has(inc.locationCode)) continue;
+
+  const loc = data.locations[inc.locationId];
+  puByCode.set(inc.locationCode, await ensureJurisdiction({
+    kind: 'polling_unit',
+    name: inc.precinctArea || inc.locationCode,
+    code: inc.locationCode,
+    parentId: loc ? lgaIds.get(loc.lga) ?? null : null,
+    path: `/${loc?.state ?? ''}/${loc?.lga ?? ''}/${inc.locationCode}`
+  }));
+
+  console.log(`  polling unit added from incident ${inc.caseRef}: ${inc.locationCode}`);
+}
+
 console.log(`jurisdictions: ${stateIds.size} states, ${lgaIds.size} LGAs, ${puByCode.size} polling units`);
 
 // ---------------------------------------------------------------------------

@@ -1,3 +1,7 @@
 data/agora.json
 dist/
 node_modules/
+
+# macOS directory metadata
+.DS_Store
+**/.DS_Store

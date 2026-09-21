@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 
 <head>
     <meta charset="UTF-8">
@@ -7,6 +7,20 @@
     <title>Agora Lens | Election Incident Overview & Civic Early Warning Platform</title>
     <meta name="description"
         content="Civic safety and accountability platform for election incident documentation, early warning alerts, and historical violence patterns.">
+
+    <script>
+      // Runs before any stylesheet: applies a stored theme choice so the page
+      // never paints in one palette and then repaints in the other. The full
+      // controller in js/theme.js takes over once it loads.
+      try {
+        var saved = localStorage.getItem('agora-lens-theme');
+        if (saved === 'dark' || saved === 'light') {
+          document.documentElement.setAttribute('data-theme', saved);
+        }
+      } catch (e) {
+        // Private browsing or blocked storage — the light default stands.
+      }
+    </script>
 
     <!-- PWA -->
     <link rel="manifest" href="manifest.json">
@@ -502,11 +516,11 @@
                             <p class="support-col-body" data-i18n="support.body1">If you are facing active violence or intimidation, the national election emergency line is staffed around the clock. Ask for the desk nearest your polling unit.</p>
                             <button class="btn btn-coral-subtle support-col-cta" type="button" data-i18n="support.cta1"
                                 onclick="window.agoraNotifications.showToast('Connecting to Hotline', 'Dialing 0800-VOTE-SAFE...')">Call 0800-VOTE-SAFE</button>
-                            <!-- Illustration slot: drop Assets/respond/urgent.svg (or .png) in and
+                            <!-- Illustration slot: drop Assets/Hotline.png (or .png) in and
                                  it replaces the placeholder frame below. -->
                             <div class="support-illustration">
                                 <span class="support-illustration-hint" aria-hidden="true" data-i18n="support.illustration">Illustration</span>
-                                <img class="support-illustration-img" src="Assets/respond/urgent.svg" alt=""
+                                <img class="support-illustration-img" src="Assets/Hotline.png" alt=""
                                     loading="lazy" onerror="this.remove()" />
                             </div>
                         </article>
@@ -519,11 +533,11 @@
                             <p class="support-col-body" data-i18n="support.body2">Accredited election lawyers review disputed and contested incidents free of charge, and can carry a case through to the election tribunal on your behalf.</p>
                             <button class="btn btn-ghost support-col-cta" type="button" data-i18n="support.cta2"
                                 onclick="window.agoraNotifications.showToast('Legal Aid Requested', 'An accredited election lawyer will review your case.')">Request legal aid</button>
-                            <!-- Illustration slot: drop Assets/respond/legal.svg (or .png) in and
+                            <!-- Illustration slot: drop Assets/Legal.png (or .png) in and
                                  it replaces the placeholder frame below. -->
                             <div class="support-illustration">
                                 <span class="support-illustration-hint" aria-hidden="true" data-i18n="support.illustration">Illustration</span>
-                                <img class="support-illustration-img" src="Assets/respond/legal.svg" alt=""
+                                <img class="support-illustration-img" src="Assets/Legal.png" alt=""
                                     loading="lazy" onerror="this.remove()" />
                             </div>
                         </article>
@@ -536,11 +550,11 @@
                             <p class="support-col-body" data-i18n="support.body3">Confidential counseling for voters, observers and officials affected by election-day violence. You do not need to have filed a report to talk to someone.</p>
                             <button class="btn btn-ghost support-col-cta" type="button" data-i18n="support.cta3"
                                 onclick="window.agoraNotifications.showToast('Counseling Line', 'A confidential counselor will be connected shortly.')">Talk to a counselor</button>
-                            <!-- Illustration slot: drop Assets/respond/care.svg (or .png) in and
+                            <!-- Illustration slot: drop Assets/Counseling.png (or .png) in and
                                  it replaces the placeholder frame below. -->
                             <div class="support-illustration">
                                 <span class="support-illustration-hint" aria-hidden="true" data-i18n="support.illustration">Illustration</span>
-                                <img class="support-illustration-img" src="Assets/respond/care.svg" alt=""
+                                <img class="support-illustration-img" src="Assets/Counseling.png" alt=""
                                     loading="lazy" onerror="this.remove()" />
                             </div>
                         </article>
@@ -553,11 +567,11 @@
                             <p class="support-col-body" data-i18n="support.body4">Fund tribunal representation for the voters and observers who came forward with evidence and cannot afford a lawyer to see the case through.</p>
                             <button class="btn btn-ghost support-col-cta" type="button" data-i18n="support.cta4"
                                 onclick="window.agoraNotifications.showToast('Legal Defense Fund', 'Opening the secure donation form...')">Donate to the fund</button>
-                            <!-- Illustration slot: drop Assets/respond/fund.svg (or .png) in and
+                            <!-- Illustration slot: drop Assets/Donate.png (or .png) in and
                                  it replaces the placeholder frame below. -->
                             <div class="support-illustration">
                                 <span class="support-illustration-hint" aria-hidden="true" data-i18n="support.illustration">Illustration</span>
-                                <img class="support-illustration-img" src="Assets/respond/fund.svg" alt=""
+                                <img class="support-illustration-img" src="Assets/Donate.png" alt=""
                                     loading="lazy" onerror="this.remove()" />
                             </div>
                         </article>

@@ -301,7 +301,23 @@ for (const [slug, area] of Object.entries(AREAS)) {
   if (!areaBySlug.has(slug)) continue;
 
   for (const year of [2019, 2023, 2027]) {
-    const howMany = year === 2027 ? between(1, 2) : between(2, 4);
+    // Volume follows severity, so the badge, the marker size and the ranked
+    // list agree with each other. Before this, status rotated mechanically
+    // while counts were random — a jurisdiction marked CRITICAL could hold
+    // fewer reports than one marked NORMAL, which made the map meaningless.
+    //
+    // The spread is deliberately wide: real election incident data is heavily
+    // skewed toward a handful of flashpoints, not evenly distributed, and a
+    // flat dataset gives a severity map nothing to show.
+    const VOLUME = {
+      CRITICAL: [7, 11], HIGH: [4, 7], ELEVATED: [2, 4], NORMAL: [1, 2]
+    };
+    const [low, high] = VOLUME[area.status] ?? VOLUME.NORMAL;
+
+    // 2027 is mid-cycle, so every jurisdiction has fewer records for it.
+    const howMany = year === 2027
+      ? Math.max(0, between(Math.floor(low / 2), Math.ceil(high / 2)))
+      : between(low, high);
 
     for (let n = 0; n < howMany; n++) {
       const template = pick(TEMPLATES);
@@ -464,6 +480,56 @@ for (const [, id] of idByRef) {
   await db.from('incidents').update({ credibility_weight: score }).eq('id', id);
   scored += 1;
 }
+
+// ---------------------------------------------------------------------------
+// Status follows the record count
+//
+// Derived at the end rather than assigned up front, because the generator rolls
+// a range per cycle and a HIGH area can out-roll a CRITICAL one. A jurisdiction
+// badged CRITICAL while holding fewer reports than a NORMAL neighbour makes the
+// map, the badge and the ranked list contradict each other — and a reader has
+// no way to tell which one is lying.
+const { data: published } = await db
+  .from('incidents').select('monitored_area_id').eq('published', true);
+
+const countByArea = new Map();
+for (const row of published ?? []) {
+  countByArea.set(row.monitored_area_id, (countByArea.get(row.monitored_area_id) ?? 0) + 1);
+}
+
+const { data: areaSlugs } = await db.from('monitored_areas').select('id, slug');
+const slugByAreaId = new Map((areaSlugs ?? []).map(a => [a.id, a.slug]));
+
+const ranked = [...countByArea.entries()].sort((a, b) => b[1] - a[1]);
+let restatused = 0;
+
+for (const [index, [areaId, count]] of ranked.entries()) {
+  const percentile = index / Math.max(1, ranked.length - 1);
+  const status = percentile <= 0.15 ? 'CRITICAL'
+    : percentile <= 0.40 ? 'HIGH'
+    : percentile <= 0.75 ? 'ELEVATED'
+    : 'NORMAL';
+
+  // The summary is shown in the map popup and was frozen at whatever the
+  // original seed wrote, so it kept asserting "7 incidents recorded" for a
+  // jurisdiction now holding 24. Regenerated from the real figure.
+  const { data: corroborated } = await db
+    .from('v_published_incidents')
+    .select('independent_source_count')
+    .eq('area_slug', slugByAreaId.get(areaId) ?? '');
+
+  const multiSource = (corroborated ?? []).filter(r => r.independent_source_count > 1).length;
+
+  const { error } = await db.from('monitored_areas').update({
+    status,
+    summary: `${count} incidents recorded in this LGA · ${multiSource} corroborated by two or more independent sources.`
+  }).eq('id', areaId);
+
+  if (error) throw new Error(`status ${areaId}: ${error.message}`);
+  restatused += 1;
+}
+
+console.log(`area status derived from record counts: ${restatused}`);
 
 console.log(`demo polling units: ${puByCode.size}`);
 console.log(`demo incidents:     ${written.length}`);

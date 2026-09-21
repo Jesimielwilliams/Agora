@@ -57,6 +57,18 @@ function displayStamp(iso, { zone = 'WAT' } = {}) {
   return `${day} ${month} ${year} · ${hh}:${mm} ${zone}`;
 }
 
+// Stage keys are stored lowercase; these are what a reader sees.
+const STAGE_LABELS = {
+  reported: 'Reported',
+  review: 'Under Review',
+  verified: 'Verified',
+  referred: 'Referred',
+  investigation: 'Investigation',
+  response: 'Institutional Response',
+  legal: 'Legal Process',
+  conclusion: 'Conclusion'
+};
+
 function badgeFor(status) {
   switch (status) {
     case 'ACTIVE_ALERT': return { badgeType: 'Active Alert', badgeClass: 'badge-active-alert' };
@@ -73,11 +85,12 @@ async function fetchAll(table, columns = '*') {
 }
 
 async function build() {
-  const [areas, incidents, sources, stages, alerts, news, metrics, pus] = await Promise.all([
+  const [areas, incidents, sources, stages, evidence, alerts, news, metrics, pus] = await Promise.all([
     fetchAll('monitored_areas'),
     fetchAll('v_published_incidents'),
-    fetchAll('incident_sources', 'incident_id, url, excerpt, is_independent, sources(name, trust_tier)'),
+    fetchAll('incident_sources', 'incident_id, url, excerpt, is_independent, retrieved_at, sources(name, trust_tier, kind)'),
     fetchAll('incident_stages', '*, incidents!inner(case_ref, published)'),
+    fetchAll('incident_evidence', 'id, incident_id, kind, caption, captured_at'),
     fetchAll('v_published_alerts'),
     fetchAll('news_items', '*, sources(name)'),
     fetchAll('v_cycle_metrics'),
@@ -162,11 +175,46 @@ async function build() {
       description: stage.description
     });
   }
-  for (const track of Object.values(incidentTracks)) {
+  // The track detail view reads currentStatus, sources, evidence and
+  // externalRef off each track. Emitting only the stages left those undefined,
+  // which crashed the outcome list the moment any record had a timeline.
+  const evidenceByIncident = new Map();
+  for (const item of evidence) {
+    const list = evidenceByIncident.get(item.incident_id) ?? [];
+    list.push({ kind: item.kind, label: item.caption ?? item.kind, capturedAt: item.captured_at });
+    evidenceByIncident.set(item.incident_id, list);
+  }
+
+  for (const [incidentId, track] of Object.entries(incidentTracks)) {
     track.stages.sort((a, b) => new Date(a.date) - new Date(b.date));
+    track.stages.forEach(stage => { stage.label = STAGE_LABELS[stage.key] ?? stage.key; });
+
+    const last = track.stages.at(-1);
     track.reportedOn = track.stages[0]?.date ?? null;
-    track.lastUpdated = track.stages.at(-1)?.date ?? null;
-    track.currentStageKey = track.stages.at(-1)?.key ?? null;
+    track.lastUpdated = last?.date ?? null;
+    track.currentStageKey = last?.key ?? null;
+
+    track.currentStatus = {
+      label: last ? (STAGE_LABELS[last.key] ?? last.key) : 'Reported',
+      state: last?.key === 'conclusion' ? 'Concluded' : 'Ongoing'
+    };
+
+    // Field names match what the sources tab renders: type / detail / date.
+    track.sources = (sourcesByIncident.get(incidentId) ?? []).map(row => ({
+      type: row.sources?.kind ?? 'citizen',
+      name: row.sources?.name ?? 'Unattributed',
+      tier: row.sources?.trust_tier ?? null,
+      detail: row.excerpt ?? row.url ?? '—',
+      date: row.retrieved_at ? displayStamp(row.retrieved_at) : '—',
+      url: row.url,
+      independent: row.is_independent
+    }));
+
+    track.evidence = evidenceByIncident.get(incidentId) ?? [];
+    // No document store wired up yet; the view renders an empty tab rather
+    // than breaking on a missing array.
+    track.legalDocs = [];
+    track.externalRef = track.externalRef ?? null;
   }
 
   // ---- metrics --------------------------------------------------------------

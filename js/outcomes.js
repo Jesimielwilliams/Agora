@@ -21,6 +21,14 @@ const TRACK_STAGE_ORDER = [
   { key: 'conclusion', num: '08', label: 'Conclusion' }
 ];
 
+/**
+ * A source whose kind we don't recognise still has to render. Indexing the
+ * table directly threw and took the whole Sources tab down with it.
+ */
+function sourceType(kind) {
+  return TRACK_SOURCE_TYPES[kind] ?? { label: 'Other', cls: 'src-citizen' };
+}
+
 const TRACK_SOURCE_TYPES = {
   official: { label: 'Official', cls: 'src-official' },
   media: { label: 'Media', cls: 'src-media' },
@@ -92,9 +100,31 @@ class AgoraOutcomesTracker {
     return AGORA_DATA.incidents.find(i => i.id === id) || AGORA_DATA.incidents[0];
   }
 
+  /**
+   * Guarantees the shape every render site assumes.
+   *
+   * The published snapshot and the bundled dataset don't carry identical
+   * tracks — a record imported mid-migration may have stages but no evidence
+   * list, for instance. Normalising once here means the timeline, the summary
+   * panel and the three tabs can all read these without ten separate guards,
+   * and a missing array renders as empty instead of throwing.
+   */
+  normaliseTrack(raw) {
+    if (!raw) return null;
+
+    return {
+      ...raw,
+      stages: raw.stages ?? [],
+      sources: raw.sources ?? [],
+      evidence: raw.evidence ?? [],
+      legalDocs: raw.legalDocs ?? [],
+      currentStatus: raw.currentStatus ?? null
+    };
+  }
+
   track() {
     const inc = this.incident();
-    return (AGORA_DATA.incidentTracks || {})[inc.id] || null;
+    return this.normaliseTrack((AGORA_DATA.incidentTracks || {})[inc.id]);
   }
 
   location() {
@@ -146,7 +176,7 @@ class AgoraOutcomesTracker {
 
       return {
         inc,
-        track,
+        track: this.normaliseTrack(track),
         loc,
         reportedAt: this.parseRecordDate(inc.watTimestamp || inc.timestamp),
         updatedAt: track ? this.parseRecordDate(track.lastUpdated) : 0
@@ -266,8 +296,12 @@ class AgoraOutcomesTracker {
     }
 
     list.innerHTML = matched.map(({ inc, track, loc }) => {
-      const status = track
-        ? `${track.currentStatus.label} <span class="track-index-stage-state">&mdash; ${track.currentStatus.state}</span>`
+      // A track can exist with no documented status — the publisher derives it
+      // from the last stage, and a record mid-import may have neither. Reading
+      // it unguarded crashed the whole list, taking every other row with it.
+      const current = track?.currentStatus;
+      const status = current?.label
+        ? `${current.label} <span class="track-index-stage-state">&mdash; ${current.state ?? 'Ongoing'}</span>`
         : t('outcomes.notProgressed');
       const updated = track
         ? t('outcomes.updated', { date: track.lastUpdated })
@@ -340,7 +374,7 @@ class AgoraOutcomesTracker {
 
   renderHeader(inc, track) {
     const loc = this.location();
-    const status = track ? track.currentStatus : null;
+    const status = track?.currentStatus ?? null;
     const dateLabel = (inc.watTimestamp || '').split('·')[0].trim();
 
     return `
@@ -380,10 +414,12 @@ class AgoraOutcomesTracker {
       ['Location', `${inc.precinctArea || ''}`],
       ['Polling unit', inc.locationCode],
       ['Election', `${AGORA_DATA.currentYear} ${inc.electoralContext || ''}`],
-      ['Current status', `${track.currentStatus.label} — ${track.currentStatus.state}`],
+      ['Current status', track.currentStatus?.label
+        ? `${track.currentStatus.label} — ${track.currentStatus.state ?? 'Ongoing'}`
+        : '—'],
       ['Last updated', track.lastUpdated],
-      ['Sources', `${track.sources.length}`],
-      ['Evidence items', `${track.evidence.length}`],
+      ['Sources', `${track.sources?.length ?? 0}`],
+      ['Evidence items', `${track.evidence?.length ?? 0}`],
       ['External reference', track.externalRef || '—']
     ];
 
@@ -495,9 +531,9 @@ class AgoraOutcomesTracker {
           <div class="track-stage-foot">
             <div class="track-sources-inline">
               ${sources.map(s => `
-                <span class="track-source-tag ${TRACK_SOURCE_TYPES[s.type].cls}">
-                  ${TRACK_SOURCE_TYPES[s.type].label}
-                </span><span class="track-source-name">${s.name}</span>
+                <span class="track-source-tag ${sourceType(s.type).cls}">
+                  ${sourceType(s.type).label}
+                </span><span class="track-source-name">${s.name ?? 'Unattributed'}</span>
               `).join('')}
             </div>
             <button class="track-details-btn" type="button" data-stage-details="${meta.key}">
@@ -584,10 +620,10 @@ class AgoraOutcomesTracker {
           <tbody>
             ${track.sources.map(s => `
               <tr>
-                <td><span class="track-source-tag ${TRACK_SOURCE_TYPES[s.type].cls}">${TRACK_SOURCE_TYPES[s.type].label}</span></td>
-                <td class="track-td-strong">${s.name}</td>
-                <td>${s.detail}</td>
-                <td class="track-td-muted">${s.date}</td>
+                <td><span class="track-source-tag ${sourceType(s.type).cls}">${sourceType(s.type).label}</span></td>
+                <td class="track-td-strong">${s.name ?? 'Unattributed'}</td>
+                <td>${s.detail ?? '—'}</td>
+                <td class="track-td-muted">${s.date ?? '—'}</td>
                 <td class="track-td-action"><button class="track-details-btn" type="button">View details &rarr;</button></td>
               </tr>
             `).join('')}
