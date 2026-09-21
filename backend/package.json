@@ -1,0 +1,16 @@
+{
+  "name": "agora-lens-backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "seed": "node --env-file=.env scripts/seed-from-legacy.mjs",
+    "seed:reset": "node --env-file=.env scripts/seed-from-legacy.mjs --reset",
+    "publish": "node --env-file=.env scripts/publish-snapshot.mjs",
+    "publish:dry": "node --env-file=.env scripts/publish-snapshot.mjs --dry-run"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0"
+  }
+}

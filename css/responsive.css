@@ -1,0 +1,507 @@
+/* ==========================================================================
+   AGORA LENS RESPONSIVE ADAPTATIONS
+   ========================================================================== */
+
+@media (max-width: 1380px) {
+  .stats-kpi-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .featured-meta-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 1200px) {
+  .alerts-drawer {
+    width: 280px;
+    min-width: 280px;
+  }
+  
+  .stat-kpi-value {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 640px) {
+  .stats-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .main-top-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header-controls-group {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .featured-meta-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .respond-hub-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Four columns become a stack: the vertical rules that separated them turn
+     into horizontal ones between stacked cards. */
+  .support-track {
+    grid-template-columns: 1fr;
+  }
+
+  .support-col {
+    padding: 0 0 22px;
+    border-left: none;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .support-col:first-child {
+    border-top: 1px solid var(--border-subtle);
+    padding-top: 18px;
+  }
+
+  .support-col:not(:first-child) {
+    padding-top: 18px;
+  }
+
+  .support-col:last-child {
+    border-right: none;
+  }
+
+  .support-hub-title {
+    font-size: 23px;
+    margin-bottom: 26px;
+  }
+
+  .support-illustration {
+    aspect-ratio: 16 / 9;
+  }
+
+  .incident-alerts-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* The incident reports table is wider than a phone screen — scroll it
+     horizontally instead of clipping columns (Timestamp, etc.) out of reach. */
+  .data-table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .styled-table {
+    min-width: 640px;
+  }
+
+  /* Report Incident wizard: LGA / PU Code side-by-side row overflows a phone-
+     width modal — stack it instead. */
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================================
+   PWA-STYLE MOBILE SHELL — bottom tab bar navigation
+   Covers phones and tablets alike (≤1024px) so there's no awkward halfway
+   "stacked desktop layout" zone in between this and the full desktop shell.
+   ========================================================================== */
+@media (max-width: 1024px) {
+  :root {
+    --mobile-navbar-height: 60px;
+  }
+
+  /* The desktop shell relies on html/body being non-scrolling (overflow:hidden)
+     with #app-container as the single fixed-height, internally-scrolling pane.
+     On mobile the drawer stacks below the content instead of floating, so the
+     page can genuinely grow taller than one screen — let the page itself
+     scroll instead of trying to keep everything inside one fixed-height box. */
+  html,
+  body {
+    height: auto;
+    min-height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  #app-container {
+    flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
+
+  /* Sidebar becomes a fixed bottom tab bar; brand/search/section-titles/footer
+     are desktop-only chrome and are hidden here. */
+  .sidebar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: auto;
+    width: 100%;
+    min-width: 100%;
+    height: calc(var(--mobile-navbar-height) + env(safe-area-inset-bottom, 0px));
+    flex-direction: row;
+    align-items: stretch;
+    padding: 0;
+    border-right: none;
+    border-top: 1px solid var(--border-subtle);
+    border-bottom: none;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    z-index: 50;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .sidebar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .sidebar .brand-header,
+  .sidebar .sidebar-search,
+  .sidebar .nav-section-title,
+  .sidebar .sidebar-footer {
+    display: none;
+  }
+
+  .sidebar .nav-section {
+    display: flex;
+    flex-direction: row;
+    flex: 1;
+    gap: 0;
+    margin-bottom: 0;
+  }
+
+  /* Icon-only tabs — the section titles are redundant with the icon at this
+     size and just add clutter/width; the icon alone is the tap target. */
+  .sidebar .nav-item {
+    position: relative;
+    flex: 0 0 auto;
+    width: 56px;
+    min-width: 56px;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border-radius: 0;
+    scroll-snap-align: center;
+  }
+
+  .sidebar .nav-item-left {
+    gap: 0;
+  }
+
+  .sidebar .nav-item-left span {
+    display: none;
+  }
+
+  .sidebar .nav-item svg {
+    width: 19px;
+    height: 19px;
+  }
+
+  .sidebar .nav-item.active {
+    background: var(--bg-card-hover);
+    color: var(--text-primary);
+  }
+
+  /* The trailing badge/dot after nav-item-left (count, live dot) becomes a
+     small corner badge instead of a second flex column. */
+  .sidebar .nav-item > span:not(.nav-item-left) {
+    position: absolute;
+    top: 9px;
+    right: 9px;
+  }
+
+  /* Non-map views (tables/charts/feeds) flow and scroll naturally, with the
+     alerts drawer stacking below as a full-width panel; #app-container itself
+     is the scroll region. The map view is the exception — it needs a fixed
+     box to fill (see .map-fullbleed below), not natural content height. */
+  .main-viewport {
+    /* flex:1 (flex-basis:0%) fights an explicit height on a flex item whose
+       container has no definite height of its own — drop it so `height` below
+       is fully respected instead of collapsing to 0. */
+    flex: none;
+    height: auto;
+    overflow: visible;
+    padding-bottom: calc(var(--mobile-navbar-height) + env(safe-area-inset-bottom, 0px) + 16px);
+  }
+
+  .main-viewport.map-fullbleed {
+    height: calc(100vh - var(--mobile-navbar-height) - env(safe-area-inset-bottom, 0px));
+    overflow: hidden;
+    padding-bottom: 0;
+  }
+
+  /* ------------------------------------------------------------------
+     Overview without the map.
+
+     A pinch-zoomable map of Nigeria in a 375px box is unusable — it opens
+     on the Gulf of Guinea, its popup runs off-screen, and it pushes the
+     incident feed a full screen below the fold, all while being invisible
+     to a screen reader. So on mobile the Overview flows normally — header,
+     KPIs, ranked hotspot list, alerts — and the map moves behind a
+     "View map" control that opens it full-screen.
+     ------------------------------------------------------------------ */
+  /* The desktop map view is full-bleed by design, so it zeroes the viewport's
+     padding. Without the map, mobile needs that gutter back — otherwise the
+     header, KPI cards and hotspot rows all run edge to edge while the feed
+     inside them is inset, which reads as broken alignment. */
+  .main-viewport.map-fullbleed {
+    height: auto;
+    overflow: visible;
+    padding: 16.8px 16px calc(var(--mobile-navbar-height) + env(safe-area-inset-bottom, 0px) + 16px);
+  }
+
+  #view-overview.active-view {
+    position: static;
+    inset: auto;
+    height: auto;
+    bottom: auto;
+  }
+
+  /* Out of the flow entirely until the sheet opens. Leaflet then sizes itself
+     against a hidden box, which is why hotspots.js calls invalidateSize(). */
+  #view-overview .map-visualizer-container {
+    display: none;
+  }
+
+  /* Header and KPI row become ordinary content: no scrim, no overlay. The
+     gutter comes from .main-viewport above, so these sit flush inside it. */
+  .map-floating-topbar {
+    position: static;
+    background: none;
+    padding: 0 0 16px;
+  }
+
+  .map-floating-topbar.chrome-compact .map-floating-topbar-content {
+    margin-right: 0;
+  }
+
+  .map-canvas-controls {
+    display: none;
+  }
+
+  .hotspot-panel {
+    display: block;
+  }
+
+  /* The expanded incident panel becomes a bottom sheet above the tab bar, so
+     it's visible the moment a card is picked rather than parked off-screen. */
+  .map-floating-bottombar,
+  #app-container.map-fullbleed .map-floating-bottombar {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: calc(var(--mobile-navbar-height) + env(safe-area-inset-bottom, 0px) + 10px);
+    max-height: 62vh;
+    overflow-y: auto;
+    z-index: 45;
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* The toggle sits inside the sheet here and acts as a dismiss (see app.js),
+     so it has to be reachable rather than tucked above the panel's top edge. */
+  .map-floating-bottombar .map-panel-toggle-btn {
+    top: 8px;
+    right: 8px;
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    background: var(--bg-card-inset);
+  }
+
+  .map-floating-bottombar .map-panel-toggle-btn svg {
+    transform: rotate(180deg);
+  }
+
+  .map-floating-bottombar .featured-header-badges {
+    padding-right: 34px;
+  }
+
+  /* ---- On-demand full-screen map sheet ---- */
+  #view-overview.map-sheet-open .map-visualizer-container {
+    display: block;
+    position: fixed;
+    inset: 0;
+    margin: 0;
+    border: none;
+    border-radius: 0;
+    z-index: 60;
+  }
+
+  #view-overview.map-sheet-open .map-canvas-controls {
+    display: flex;
+    position: fixed;
+    z-index: 61;
+  }
+
+  /* The sheet covers the page, so the page behind it shouldn't scroll. */
+  body.map-sheet-locked {
+    overflow: hidden;
+  }
+
+  #view-overview.map-sheet-open .map-sheet-close {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    position: fixed;
+    top: calc(env(safe-area-inset-top, 0px) + 12px);
+    right: 12px;
+    z-index: 62;
+    height: 34px;
+    padding: 0 12px;
+    background: var(--bg-card-elevated);
+    border: 1px solid var(--border-card-highlight);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-family: var(--font-primary);
+    font-size: 11.5px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* No drawer on mobile. A side panel restated the jurisdiction the hotspot
+     row above it already names, and stacking it full-width just added a second
+     header and a second scroll. The feed it held now opens inside the row
+     itself (see .hotspot-detail); the drawer stays in the DOM, hidden, because
+     updateLocationView still keeps it current for the desktop layout. */
+  #app-container.map-fullbleed .alerts-drawer,
+  .alerts-drawer,
+  .drawer-reopen-tab {
+    display: none;
+  }
+
+  /* The feed rendered inline keeps growing naturally — there's no fixed-height
+     panel to pin a footer inside here. */
+  .drawer-feed-list {
+    flex: none;
+    min-height: 0;
+    overflow: visible;
+    padding-right: 0;
+    margin-right: 0;
+  }
+
+  /* No floating drawer to dodge on mobile (it's stacked below instead), so the
+     bottom sheet keeps its own gutter rather than the desktop drawer inset. */
+  .map-floating-bottombar.chrome-compact {
+    right: 12px;
+  }
+
+  /* A 5-card vertical KPI stack (from the ≤640px rule) makes the floating
+     topbar tall enough to collide with the zoom controls / bottom card over a
+     phone-sized map. Scroll the cards horizontally instead, so the topbar
+     stays short. */
+  /* The scroller itself bleeds into the gutter so cards can run off the edge
+     as you swipe, while the first one still lines up with everything above. */
+  .map-floating-topbar .stats-kpi-grid {
+    margin-left: -16px;
+    margin-right: -16px;
+    padding-left: 16px;
+    padding-right: 16px;
+    display: flex;
+    overflow-x: auto;
+    gap: 8px;
+    padding-bottom: 2px;
+    margin-bottom: 0;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .map-floating-topbar .stats-kpi-grid::-webkit-scrollbar {
+    display: none;
+  }
+
+  .map-floating-topbar .stat-kpi-card {
+    flex: 0 0 148px;
+  }
+
+  /* Vertically-centered controls collide with the popover/bottom card on a
+     tall narrow screen — pin them below the (now short) topbar instead. */
+  .map-canvas-controls {
+    top: 215px;
+    left: auto;
+    right: 14px;
+    transform: none;
+  }
+}
+
+/* Incident report filters reflow before the selects get too narrow to read. */
+@media (max-width: 1100px) {
+  .reports-filter-bar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .filter-actions {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 600px) {
+  .reports-filter-bar {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+
+/* Trend dashboard drops to a single column before the charts get too narrow. */
+@media (max-width: 1100px) {
+  .tr-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 620px) {
+  .tr-donut-wrap {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .tr-legend--wrap {
+    justify-content: flex-start;
+  }
+}
+
+/* Track Incident: summary panel stacks above the timeline on narrow screens. */
+@media (max-width: 980px) {
+  .track-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .track-index-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .track-index-row-side {
+    align-items: flex-start;
+    text-align: left;
+    max-width: none;
+  }
+
+  .track-index-count {
+    margin-left: 0;
+  }
+
+  .track-summary {
+    position: static;
+  }
+}
+
+/* Election feed thumbnail sits above the text on narrow screens. */
+@media (max-width: 620px) {
+  .feed-card {
+    flex-direction: column;
+  }
+
+  .feed-thumb {
+    width: 100%;
+    height: 120px;
+  }
+}

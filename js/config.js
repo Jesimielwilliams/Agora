@@ -1,0 +1,1 @@
+const STADIA_API_KEY = '822f48dc-5b03-434e-a3a1-559430e2b134';

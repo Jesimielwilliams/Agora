@@ -1,0 +1,313 @@
+/* ==========================================================================
+   AGORA LENS MAP STYLING & INTERACTIVE POPUPS
+   Live OpenStreetMap of Nigeria via Leaflet (state boundaries + markers
+   rendered by js/map.js), plus the floating popover tooltip drawn on top of it.
+   ========================================================================== */
+
+/* Leaflet's own base container/attribution/tooltip chrome, re-themed dark */
+.leaflet-container {
+  background: var(--map-void);
+  font-family: var(--font-sans);
+}
+
+/* Shown when no Stadia Maps API key is configured, or the tiles fail to load
+   (invalid key / domain not allow-listed) — see js/config.js. */
+.map-key-notice {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+  padding: 32px;
+  background: var(--map-void);
+}
+
+.map-key-notice-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.map-key-notice-body {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  max-width: 420px;
+  line-height: 1.6;
+}
+
+.map-key-notice-body code {
+  font-family: var(--font-mono);
+  background: var(--bg-card-inset);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xs);
+  padding: 1px 5px;
+}
+
+.leaflet-control-attribution {
+  background: var(--map-attribution-bg) !important;
+  color: var(--text-dim) !important;
+  font-size: 9.5px !important;
+  padding: 2px 6px !important;
+}
+
+.leaflet-control-attribution a {
+  color: var(--text-secondary) !important;
+}
+
+.leaflet-tooltip {
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border-default) !important;
+  color: var(--text-primary) !important;
+  font-size: 10.5px !important;
+  font-family: var(--font-sans) !important;
+  border-radius: var(--radius-xs) !important;
+  box-shadow: var(--shadow-sm);
+}
+
+.leaflet-tooltip-top::before {
+  border-top-color: var(--border-default) !important;
+}
+
+/* Strip Leaflet's default white popup chrome so our own card design shows through */
+.agora-popover-wrapper .leaflet-popup-content-wrapper {
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0;
+}
+
+.agora-popover-wrapper .leaflet-popup-content {
+  margin: 0;
+  width: auto !important;
+}
+
+.agora-popover-wrapper .leaflet-popup-tip {
+  background: var(--bg-card-elevated);
+  border: 1px solid var(--border-card-highlight);
+  box-shadow: none;
+}
+
+/* --------------------------------------------------------------------------
+   FLOATING INTERACTIVE MAP TOOLTIP / POPOVER
+   (Content box rendered inside a Leaflet popup, which handles positioning)
+   -------------------------------------------------------------------------- */
+.map-floating-popover {
+  background-color: var(--bg-card-elevated);
+  border: 1px solid var(--border-card-highlight);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  /* Fixed on desktop; on a phone it gives way to the viewport so it can never
+     be clipped at the screen edge. */
+  width: min(255px, calc(100vw - 36px));
+  box-shadow: var(--shadow-lg);
+}
+
+.popover-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2px;
+}
+
+.popover-location-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 700;
+  font-family: var(--font-secondary);
+  color: var(--text-primary);
+}
+
+.popover-title-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--accent-green-bright);
+}
+
+.popover-residents-badge {
+  background: var(--bg-card-inset);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xs);
+  font-size: 9.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  padding: 1px 5px;
+  font-family: var(--font-mono);
+}
+
+.popover-zone-subtitle {
+  font-size: 9px;
+  font-weight: 700;
+  font-family: var(--font-secondary);
+  color: var(--text-dim);
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.popover-narrative {
+  font-size: 10.5px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  margin-bottom: 8px;
+}
+
+/* Distribution Segmented Progress Bar */
+.popover-dist-bar {
+  display: flex;
+  height: 5px;
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  background: var(--border-subtle);
+  margin-bottom: 6px;
+}
+
+.dist-segment-pink,
+.dist-segment-blue,
+.dist-segment-purple {
+  background-image: var(--dist-segment-sheen);
+}
+
+.dist-segment-pink {
+  background-color: var(--accent-pink);
+  width: 45%;
+}
+
+.dist-segment-blue {
+  background-color: var(--accent-cyan);
+  width: 35%;
+}
+
+.dist-segment-purple {
+  background-color: var(--accent-purple);
+  width: 20%;
+}
+
+.popover-dist-legend {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 8.5px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.dist-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.dist-legend-value {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.legend-dot-pink {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent-pink);
+}
+
+.legend-dot-blue {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent-cyan);
+}
+
+.legend-dot-purple {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent-purple);
+}
+
+.popover-cta-link {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-decoration: none;
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 6px;
+  cursor: pointer;
+  transition: color var(--transition-fast);
+}
+
+.popover-cta-link:hover {
+  color: var(--accent-cyan);
+}
+
+/* Map Canvas Overlay Controls (Zoom +, -, Center, Locate) */
+.map-canvas-controls {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  z-index: 10;
+}
+
+.map-control-btn {
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.map-control-btn:last-child {
+  border-bottom: none;
+}
+
+.map-control-btn:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-primary);
+}
+
+/* Map Layer Legend Pill on Canvas */
+.map-layer-legend {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+  background: var(--map-marker-label-bg);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 10px;
+  color: var(--text-muted);
+  z-index: 10;
+}
+
+.layer-legend-entry {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}

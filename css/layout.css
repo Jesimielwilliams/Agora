@@ -1,0 +1,1757 @@
+/* ==========================================================================
+   AGORA LENS LAYOUT
+   Three-Column Layout: Sidebar (Nav), Main Canvas (Map & Feeds), Right Drawer (Alerts)
+   ========================================================================== */
+
+#app-container {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background-color: var(--bg-app);
+}
+
+/* --------------------------------------------------------------------------
+   1. LEFT SIDEBAR NAVIGATION
+   -------------------------------------------------------------------------- */
+.sidebar {
+  width: 224px;
+  min-width: 224px;
+  height: 100vh;
+  background-color: var(--bg-sidebar);
+  border-right: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  padding: 16px 12px;
+  user-select: none;
+  z-index: 20;
+}
+
+.brand-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 8px 16px 8px;
+}
+
+.brand-logo-icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.brand-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  /* The asset is a black glyph on an opaque white rounded tile (only the four
+     corners are transparent), so it is shown as supplied — no colour filter,
+     and no upscaling, which would push the tile outside its box. */
+  border-radius: 5px;
+}
+
+.brand-title {
+  font-size: 14px;
+  font-weight: 700;
+  font-family: var(--font-secondary);
+  color: var(--text-primary);
+  letter-spacing: -0.2px;
+}
+
+/* Sidebar Search Bar */
+.sidebar-search {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.sidebar-search-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-card-inset);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  padding: 7px 10px;
+  color: var(--text-muted);
+  font-size: 11.5px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.sidebar-search-btn:hover {
+  border-color: var(--border-card-highlight);
+  color: var(--text-secondary);
+}
+
+.sidebar-search-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.search-shortcut-badge {
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xs);
+  padding: 1px 4px;
+  font-size: 9.5px;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+}
+
+/* Sidebar Nav Groups */
+.nav-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 20px;
+}
+
+.nav-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 4px 8px 6px 8px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 10px;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 12.5px;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  position: relative;
+}
+
+.nav-item-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nav-item svg {
+  color: var(--text-muted);
+  transition: color var(--transition-fast);
+}
+
+.nav-item:hover {
+  background-color: var(--bg-card);
+  color: var(--text-primary);
+}
+
+.nav-item:hover svg {
+  color: var(--text-primary);
+}
+
+.nav-item.active {
+  background-color: var(--bg-card-elevated);
+  color: var(--text-primary);
+  font-weight: 600;
+  box-shadow: inset 0 0 0 1px var(--border-default);
+}
+
+.nav-item.active svg {
+  color: var(--text-primary);
+}
+
+.nav-badge-count {
+  background: var(--alert-red-bg);
+  color: var(--alert-red-light);
+  border: 1px solid var(--alert-red-border);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: var(--radius-full);
+}
+
+/* Marks the nav item currently selected — and only that one, so the sidebar
+   never shows a standing indicator against a tab nothing is happening on. */
+.nav-dot-selected {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: transparent;
+  transition: background-color var(--transition-fast);
+}
+
+.nav-item.active .nav-dot-selected {
+  background-color: var(--text-primary);
+}
+
+/* Sidebar Footer: Language Switcher */
+.sidebar-footer {
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.lang-switcher {
+  position: relative;
+}
+
+.lang-switcher-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-card-inset);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  padding: 7px 9px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.lang-switcher-btn:hover {
+  border-color: var(--border-card-highlight);
+  color: var(--text-primary);
+}
+
+.lang-switcher-btn svg {
+  margin-left: auto;
+  flex-shrink: 0;
+  transition: transform var(--transition-fast);
+}
+
+.lang-switcher.open .lang-switcher-btn svg {
+  transform: rotate(180deg);
+}
+
+.lang-flag-circle {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  line-height: 1;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+
+.lang-switcher-label {
+  flex: 1;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lang-switcher-menu {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: var(--bg-card-elevated);
+  border: 1px solid var(--border-card-highlight);
+  border-radius: var(--radius-sm);
+  padding: 4px;
+  box-shadow: var(--shadow-lg);
+  display: none;
+  flex-direction: column;
+  gap: 1px;
+  z-index: 30;
+}
+
+.lang-switcher.open .lang-switcher-menu {
+  display: flex;
+}
+
+.lang-switcher-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-xs);
+  padding: 7px 8px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.lang-switcher-option:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-primary);
+}
+
+.lang-switcher-option.active {
+  color: var(--text-primary);
+  background: var(--bg-card-hover);
+}
+
+
+/* --------------------------------------------------------------------------
+   2. MAIN CONTENT VIEWPORT
+   -------------------------------------------------------------------------- */
+.main-viewport {
+  flex: 1;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background-color: var(--bg-app);
+  /* Top gutter runs 20% deeper than the side/bottom one, so page headings sit
+     off the top edge rather than tight against it. */
+  padding: 19.2px 20px 20px 20px;
+  min-width: 0;
+  /* flex child text truncation fix */
+  position: relative;
+}
+
+/* Top App Header & Filters Bar */
+.main-top-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.header-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.header-breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.header-main-title {
+  font-size: 18px;
+  font-weight: 700;
+  font-family: var(--font-secondary);
+  color: var(--text-primary);
+  letter-spacing: -0.3px;
+}
+
+.header-controls-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header-select-btn {
+  background: var(--bg-card-inset);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.header-select-btn:hover {
+  border-color: var(--border-card-highlight);
+  color: var(--text-primary);
+}
+
+/* --------------------------------------------------------------------------
+   3. STAT METRICS CARDS (5 KPI Grid)
+   -------------------------------------------------------------------------- */
+.stats-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.stat-kpi-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 72px;
+  transition: all var(--transition-fast);
+}
+
+.stat-kpi-card:hover {
+  border-color: var(--border-card-highlight);
+  background-color: var(--bg-card-hover);
+}
+
+.stat-kpi-label {
+  font-size: 9.5px;
+  font-weight: 700;
+  font-family: var(--font-secondary);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  line-height: 1.2;
+}
+
+.stat-kpi-value-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.stat-kpi-value {
+  font-size: 22px;
+  font-weight: 800;
+  font-family: var(--font-secondary);
+  letter-spacing: -0.5px;
+  line-height: 1;
+}
+
+.stat-val-white {
+  color: var(--text-primary);
+}
+
+.stat-val-red {
+  color: var(--alert-red-light);
+}
+
+.stat-val-green {
+  color: var(--accent-green-bright);
+}
+
+.stat-val-text-badge {
+  font-size: 13px;
+  font-weight: 700;
+  font-family: var(--font-secondary);
+  color: var(--accent-green-bright);
+}
+
+.stat-val-subtext {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* Neutral counterpart to the red subtitle — a caption, not a warning. */
+.stat-kpi-subtitle {
+  font-size: 9.5px;
+  font-weight: 500;
+  color: var(--text-dim);
+  margin-top: 2px;
+  white-space: nowrap;
+}
+
+.stat-kpi-subtitle-red {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--alert-red-light);
+  margin-top: 2px;
+  letter-spacing: 0.3px;
+}
+
+/* --------------------------------------------------------------------------
+   4. CENTRAL MAP CANVAS & FLOATING TOOLTIP
+   -------------------------------------------------------------------------- */
+.map-visualizer-container {
+  flex: 1;
+  min-height: 380px;
+  background-color: var(--bg-card-inset);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-md);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+/* Overview view: the map is the core of the page, full-bleed edge-to-edge,
+   with the header/KPIs, controls and featured card floating on top of it. */
+.main-viewport.map-fullbleed {
+  padding: 0;
+  overflow: hidden;
+}
+
+#view-overview.active-view {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+}
+
+#view-overview .map-visualizer-container {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  background: var(--map-void);
+  /* Leaflet's internal panes use high z-indices (popups: 700, control corners:
+     1000). Without a z-index here, .map-visualizer-container never becomes its
+     own stacking context, so those panes leak out and cover the floating
+     topbar/controls/drawer instead of staying under them. */
+  z-index: 1;
+}
+
+.map-floating-topbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 8;
+  padding: 19.2px 20px 24px 20px;
+  background: var(--map-scrim);
+  pointer-events: none;
+}
+
+.map-floating-topbar>* {
+  pointer-events: auto;
+}
+
+.map-floating-bottombar {
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  bottom: 16px;
+  z-index: 8;
+  transition: transform var(--transition-normal), right var(--transition-normal),
+    opacity var(--transition-normal), visibility var(--transition-normal);
+}
+
+.map-floating-bottombar.panel-collapsed {
+  transform: translateY(calc(100% + 20px));
+}
+
+/* Nothing picked in the alerts drawer: the panel — toggle tab and all — stays
+   off the map entirely, rather than sitting there collapsed. */
+.map-floating-bottombar.panel-hidden {
+  transform: translateY(calc(100% + 48px));
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* While the alerts drawer is open & floating over the map, narrow the top/bottom
+   chrome so it stops clear of the drawer, and scale everything inside it down a
+   notch so the full KPI row / featured-card metadata still fits and stays legible
+   rather than getting clipped or crammed. The bottom card narrows as a whole
+   (it's a self-contained card), but the top bar's dark scrim is an atmospheric
+   backdrop that should keep spanning the full width — only the content sitting
+   on top of it narrows, via its own inner wrapper — otherwise the gradient ends
+   abruptly right where the drawer starts. */
+.map-floating-bottombar.chrome-compact {
+  right: 342px;
+}
+
+.map-floating-topbar-content {
+  transition: margin-right var(--transition-normal);
+}
+
+.map-floating-topbar.chrome-compact .map-floating-topbar-content {
+  margin-right: 322px;
+}
+
+.chrome-compact .main-top-header {
+  margin-bottom: 10px;
+}
+
+.chrome-compact .header-main-title {
+  font-size: 15px;
+}
+
+.chrome-compact .header-select-btn {
+  font-size: 10.5px;
+  padding: 5px 8px;
+}
+
+.chrome-compact .pill-btn {
+  font-size: 10.5px;
+  padding: 4px 8px;
+}
+
+.chrome-compact .btn {
+  font-size: 11px;
+  padding: 6px 10px;
+}
+
+.chrome-compact .stats-kpi-grid {
+  gap: 6px;
+}
+
+.chrome-compact .stat-kpi-card {
+  padding: 8px 10px;
+  min-height: 56px;
+}
+
+.chrome-compact .stat-kpi-label {
+  font-size: 8px;
+}
+
+.chrome-compact .stat-kpi-value {
+  font-size: 16px;
+}
+
+.chrome-compact .stat-val-text-badge {
+  font-size: 11px;
+}
+
+.chrome-compact .featured-incident-card {
+  padding: 10px 12px;
+  gap: 7px;
+}
+
+.chrome-compact .featured-card-footer {
+  padding-top: 7px;
+}
+
+.chrome-compact .featured-card-footer .case-ref-tag,
+.chrome-compact .featured-card-footer .read-report-link {
+  font-size: 9px;
+}
+
+.chrome-compact .featured-title {
+  font-size: 12.5px;
+}
+
+.chrome-compact .featured-description {
+  font-size: 10.5px;
+}
+
+.chrome-compact .featured-meta-grid {
+  gap: 6px;
+}
+
+.chrome-compact .meta-inset-box {
+  padding: 6px 8px;
+}
+
+.chrome-compact .meta-inset-label {
+  font-size: 8px;
+}
+
+.chrome-compact .meta-inset-primary {
+  font-size: 10.5px;
+}
+
+.chrome-compact .meta-inset-secondary {
+  font-size: 9px;
+}
+
+.map-panel-toggle-btn {
+  position: absolute;
+  top: -29px;
+  right: 0;
+  width: 30px;
+  height: 29px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-bottom: none;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-md);
+  transition: color var(--transition-fast);
+}
+
+.map-panel-toggle-btn:hover {
+  color: var(--text-primary);
+}
+
+.map-floating-bottombar.panel-collapsed .map-panel-toggle-btn svg {
+  transform: rotate(180deg);
+}
+
+/* --------------------------------------------------------------------------
+   5. BOTTOM FEATURED INCIDENT CARD
+   -------------------------------------------------------------------------- */
+.featured-incident-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: all var(--transition-fast);
+}
+
+.featured-incident-card:hover {
+  border-color: var(--border-card-highlight);
+}
+
+/* Mirrors the drawer card's footer so the expanded read stays visually part of
+   the same family. */
+.featured-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.featured-card-footer .case-ref-tag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.featured-card-footer .read-report-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  transition: color var(--transition-fast);
+}
+
+.featured-incident-card:hover .read-report-link {
+  color: var(--text-primary);
+}
+
+.featured-header-badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.featured-title {
+  font-size: 14px;
+  font-weight: 700;
+  font-family: var(--font-secondary);
+  color: var(--text-primary);
+  line-height: 1.35;
+}
+
+.featured-description {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* 4 Inset Metadata Boxes */
+.featured-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.meta-inset-box {
+  background-color: var(--bg-card-inset);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.meta-inset-label {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.meta-inset-primary {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+}
+
+.meta-inset-primary.accent-green {
+  color: var(--accent-green-bright);
+}
+
+.meta-inset-secondary {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.credibility-bar-container {
+  width: 100%;
+  height: 3px;
+  background: var(--border-subtle);
+  border-radius: var(--radius-full);
+  margin-top: 4px;
+  overflow: hidden;
+}
+
+.credibility-bar-fill {
+  height: 100%;
+  background: var(--accent-green-bright);
+  border-radius: var(--radius-full);
+}
+
+/* --------------------------------------------------------------------------
+   6. RIGHT CONTEXTUAL DRAWER ("Ikeja Incident Alerts")
+
+   The palette below is sampled directly from the panel design reference and
+   is deliberately literal (not theme tokens) so the drawer renders exactly as
+   specified. Typography is the one thing that follows the site: every rule
+   here inherits var(--font-primary) from .alerts-drawer.
+   -------------------------------------------------------------------------- */
+
+/* On the map view, the drawer floats over the full-bleed map instead of
+   reserving its own column, and can be collapsed out of the way. */
+#app-container.map-fullbleed .alerts-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  box-shadow: var(--shadow-lg);
+}
+
+.alerts-drawer.drawer-collapsed {
+  transform: translateX(100%);
+}
+
+.drawer-reopen-tab {
+  position: fixed;
+  top: 20px;
+  right: 0;
+  z-index: 16;
+  background: var(--dw-card);
+  border: 1px solid var(--border-subtle);
+  border-right: none;
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+  padding: 10px 6px;
+  color: var(--dw-muted);
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-md);
+  transition: color var(--transition-fast);
+}
+
+.drawer-reopen-tab:hover {
+  color: var(--dw-heading);
+}
+
+.drawer-reopen-tab.visible {
+  display: flex;
+}
+
+/* Reference palette for the incident feed, shared by the desktop drawer and the
+   mobile hotspot accordion that renders the same cards outside it.
+
+   Declared on :root rather than on those elements: a custom property set on an
+   element beats one inherited from :root, so declaring it here is what lets the
+   light theme block override it. */
+:root {
+  --dw-bg: #272729;
+  --dw-card: #1b1b1d;
+  --dw-summary: #232931;
+  --dw-inset: #4c4c4c;
+  --dw-heading: #d4e4fa;
+  --dw-body: #bccabb;
+  --dw-muted: #879486;
+  --dw-value: #ffffff;
+  --dw-accent: #5adf82;
+  --dw-category: #b4c5ff;
+  --dw-bg-transparent: rgba(39, 39, 41, 0);
+
+  /* Feed chrome: badges, summary pills and the two action buttons. */
+  --dw-badge-alert-bg: #e53935;
+  --dw-badge-alert-fg: #ffdcd8;
+  --dw-badge-verified-bg: #02a752;
+  --dw-badge-verified-fg: #003113;
+  --dw-badge-reported-bg: #1c2b3c;
+  --dw-badge-reported-fg: #bccabb;
+  --dw-pill-corroborated-bg: #153a75;
+  --dw-pill-corroborated-fg: #b4c5ff;
+  --dw-pill-active-bg: #ffb4ab;
+  --dw-pill-active-fg: #9f1100;
+  --dw-btn-solid-bg: #ffffff;
+  --dw-btn-solid-fg: #1b1b1d;
+  --dw-btn-solid-hover: #ececec;
+  --dw-btn-coral-bg: #ffb4ab;
+  --dw-btn-coral-hover-bg: #ffc4bd;
+  --dw-btn-coral-fg: #9f1100;
+
+  --dw-side-pad: 16.8px;
+}
+
+.alerts-drawer {
+  width: 322px;
+  min-width: 322px;
+  height: 100vh;
+  background-color: var(--dw-bg);
+  border-left: none;
+  display: flex;
+  flex-direction: column;
+  padding: 14px var(--dw-side-pad) 16.8px;
+  /* The drawer itself doesn't scroll: the header and the two action buttons
+     stay put while only the cards feed between them moves, so the timeline /
+     report CTAs are reachable at any scroll position. */
+  overflow: hidden;
+  z-index: 15;
+  font-family: var(--font-primary);
+  transition: transform var(--transition-normal);
+}
+
+/* ---- Header ------------------------------------------------------------ */
+.drawer-header {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.drawer-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.drawer-title-left {
+  display: flex;
+  align-items: center;
+  gap: 5.6px;
+}
+
+.drawer-title {
+  font-size: 11.9px;
+  font-weight: 700;
+  font-family: var(--font-primary);
+  color: var(--dw-heading);
+  letter-spacing: -0.1px;
+}
+
+.drawer-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--dw-muted);
+  cursor: pointer;
+  padding: 1.4px;
+  border-radius: var(--radius-xs);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color var(--transition-fast);
+}
+
+.drawer-close-btn:hover {
+  color: var(--dw-heading);
+}
+
+.drawer-subtitle {
+  font-size: 8.4px;
+  font-weight: 500;
+  color: var(--dw-body);
+  letter-spacing: 0.07px;
+  margin-top: 7px;
+}
+
+/* ---- Summary bar (full-bleed band) ------------------------------------- */
+.drawer-stats-pills-row {
+  display: flex;
+  align-items: center;
+  gap: 5.6px;
+  flex: none;
+  height: 29.4px;
+  padding: 0 var(--dw-side-pad);
+  margin: 8.4px calc(-1 * var(--dw-side-pad)) 0;
+  background: var(--dw-summary);
+  position: relative;
+  z-index: 1;
+}
+
+/* Mirror of the footer's fade: cards scrolling up under the pinned summary bar
+   dissolve into the drawer instead of being cut off mid-line. */
+.drawer-stats-pills-row::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  height: 18px;
+  background: linear-gradient(to bottom, var(--dw-bg) 0%, var(--dw-bg-transparent) 100%);
+  pointer-events: none;
+}
+
+.drawer-summary-dot {
+  width: 5.6px;
+  height: 5.6px;
+  flex: none;
+  border-radius: var(--radius-full);
+  background: var(--dw-accent);
+  margin-right: 2.1px;
+}
+
+.drawer-pill-documented {
+  font-size: 9.1px;
+  font-weight: 500;
+  color: var(--dw-heading);
+  margin-right: auto;
+}
+
+.drawer-pill-stat {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 12.6px;
+  padding: 0 7px;
+  border-radius: var(--radius-full);
+  font-size: 7.7px;
+  font-weight: 600;
+  letter-spacing: 0.07px;
+  white-space: nowrap;
+}
+
+.drawer-pill-corroborated {
+  background: var(--dw-pill-corroborated-bg);
+  color: var(--dw-pill-corroborated-fg);
+}
+
+.drawer-pill-active {
+  background: var(--dw-pill-active-bg);
+  color: var(--dw-pill-active-fg);
+}
+
+/* The early-warning banner is not part of this panel's design; the slot stays
+   in the DOM so alerts.js keeps rendering into it unchanged. */
+.alerts-drawer #early-warning-banner-slot {
+  display: none;
+}
+
+/* ---- Cards feed -------------------------------------------------------- */
+/* The one scrolling region in the drawer. min-height:0 lets it actually
+   shrink inside the flex column instead of pushing the footer off-screen, and
+   the padding/negative-margin pair keeps the scrollbar off the cards. */
+.drawer-feed-list {
+  display: flex;
+  flex-direction: column;
+  gap: 11.2px;
+  margin-top: 11.2px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 5px;
+  margin-right: -5px;
+  padding-bottom: 4px;
+}
+
+.drawer-card {
+  background-color: var(--dw-card);
+  border: 1px solid transparent;
+  border-radius: 7px;
+  padding: 11.2px;
+  display: flex;
+  flex-direction: column;
+  transition: border-color var(--transition-fast);
+  cursor: pointer;
+  position: relative;
+}
+
+/* The white outline is a selection cue, not a status one: it marks the card
+   currently expanded in the bottom panel and nothing else. */
+.drawer-card:hover {
+  border-color: var(--feed-card-hover-border);
+}
+
+.drawer-card.is-selected,
+.drawer-card.is-selected:hover {
+  border-color: var(--selection-stroke);
+}
+
+.drawer-card-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8.4px;
+}
+
+/* Status badges — scoped to the feed containers so the shared .badge-* classes
+   used by the featured card, alerts view and case modal are left untouched. */
+.alerts-drawer .badge,
+.hotspot-detail .badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4.2px;
+  height: 16.8px;
+  padding: 0 8.4px;
+  border: none;
+  border-radius: var(--radius-full);
+  font-family: var(--font-primary);
+  font-size: 8.4px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.alerts-drawer .badge-active-alert,
+.hotspot-detail .badge-active-alert {
+  background: var(--dw-badge-alert-bg);
+  color: var(--dw-badge-alert-fg);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.alerts-drawer .badge-verified,
+.hotspot-detail .badge-verified {
+  background: var(--dw-badge-verified-bg);
+  color: var(--dw-badge-verified-fg);
+  text-transform: uppercase;
+  letter-spacing: 0.42px;
+}
+
+.alerts-drawer .badge-reported,
+.hotspot-detail .badge-reported {
+  background: var(--dw-badge-reported-bg);
+  color: var(--dw-badge-reported-fg);
+  text-transform: uppercase;
+  letter-spacing: 0.42px;
+}
+
+.drawer-card-timestamp {
+  font-size: 8.4px;
+  font-weight: 500;
+  color: var(--dw-heading);
+  white-space: nowrap;
+}
+
+.alerts-drawer .badge-category,
+.hotspot-detail .badge-category {
+  font-family: var(--font-primary);
+  font-size: 8.05px;
+  font-weight: 600;
+  color: var(--dw-category);
+  letter-spacing: 0.49px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.drawer-card-title {
+  font-size: 10.5px;
+  font-weight: 700;
+  font-family: var(--font-primary);
+  color: var(--dw-heading);
+  line-height: 1.45;
+  margin-top: 6.3px;
+}
+
+.drawer-card-summary {
+  font-size: 8.75px;
+  font-weight: 400;
+  color: var(--dw-body);
+  line-height: 1.5;
+  margin-top: 4.2px;
+}
+
+/* ---- Inset key/value box ---------------------------------------------- */
+.card-inset-kv-table {
+  background-color: var(--dw-inset);
+  border: none;
+  border-radius: 5.6px;
+  padding: 8.4px 9.8px;
+  margin-top: 2.8px;
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  row-gap: 3.5px;
+  column-gap: 8.4px;
+  align-items: baseline;
+}
+
+.card-inset-kv-table .kv-key {
+  font-size: 8.4px;
+  line-height: 1.25;
+  font-weight: 500;
+  color: var(--dw-muted);
+  font-family: var(--font-primary);
+}
+
+.card-inset-kv-table .kv-val {
+  font-size: 8.4px;
+  line-height: 1.25;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  color: var(--dw-value);
+  text-align: right;
+  /* Values sit on one line as in the reference; only an overlong source string
+     wraps rather than being clipped. */
+  overflow-wrap: anywhere;
+}
+
+.card-inset-kv-table .kv-val.kv-val-uppercase {
+  text-transform: uppercase;
+}
+
+.card-inset-kv-table .kv-val.highlight-green {
+  color: var(--dw-accent);
+}
+
+/* ---- Card footer ------------------------------------------------------- */
+.drawer-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8.4px;
+  margin-top: 11.2px;
+  border-top: none;
+  padding-top: 0;
+}
+
+.drawer-card-footer .case-ref-tag {
+  font-family: var(--font-mono);
+  font-size: 8.05px;
+  font-weight: 500;
+  color: var(--dw-muted);
+}
+
+.drawer-card-footer .read-report-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 3.5px;
+  font-size: 8.4px;
+  font-weight: 600;
+  color: var(--dw-accent);
+  transition: opacity var(--transition-fast);
+}
+
+.drawer-card:hover .read-report-link {
+  color: var(--dw-accent);
+  opacity: 0.82;
+}
+
+/* ---- Footer actions ---------------------------------------------------- */
+.drawer-footer-actions {
+  flex: none;
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8.4px;
+  position: relative;
+}
+
+/* A short fade over the top of the pinned footer so cards scrolling underneath
+   dissolve into it rather than ending on a hard line. */
+.drawer-footer-actions::before {
+  content: '';
+  position: absolute;
+  left: calc(var(--dw-side-pad) * -1);
+  right: calc(var(--dw-side-pad) * -1);
+  bottom: 100%;
+  height: 22px;
+  background: linear-gradient(to bottom, var(--dw-bg-transparent) 0%, var(--dw-bg) 100%);
+  pointer-events: none;
+}
+
+.alerts-drawer .btn {
+  width: 100%;
+  height: 26.6px;
+  padding: 0 9.8px;
+  gap: 5.6px;
+  border: none;
+  border-radius: 7px;
+  font-family: var(--font-primary);
+  font-size: 9.1px;
+  font-weight: 600;
+}
+
+.alerts-drawer .btn-primary-white {
+  background-color: var(--dw-btn-solid-bg);
+  color: var(--dw-btn-solid-fg);
+}
+
+.alerts-drawer .btn-primary-white:hover {
+  background-color: var(--dw-btn-solid-hover);
+  transform: none;
+}
+
+.alerts-drawer .btn-coral-subtle {
+  background-color: var(--dw-btn-coral-bg);
+  color: var(--dw-btn-coral-fg);
+}
+
+.alerts-drawer .btn-coral-subtle:hover {
+  background-color: var(--dw-btn-coral-hover-bg);
+  color: var(--dw-btn-coral-fg);
+}
+
+/* --------------------------------------------------------------------------
+   6. TREND ANALYSIS DASHBOARD
+
+   Dark palette is scoped to this view and uses literal values rather than the
+   global theme tokens, so the accent hues sampled from the design references
+   stay exactly as specified. Typography follows the site (--font-primary).
+   -------------------------------------------------------------------------- */
+/* Set while the trend dashboard is the active view, so the viewport gutter
+   matches the page background behind the cards. */
+.main-viewport.viewport-trend-dark {
+  background-color: var(--tr-page);
+}
+
+/* The trend palette lives on :root rather than on the view, so the scroll
+   container behind the cards can reach --tr-page too (a custom property set on
+   a descendant is invisible to its ancestors). Light values are in the theme
+   block in design-system.css. */
+:root {
+  --tr-page: #0d0d0f;
+  --tr-card: #18181b;
+  --tr-border: #2a2a2e;
+  --tr-grid: #2a2a2e;
+  --tr-heading: #f5f5f5;
+  --tr-body: #b4b4b8;
+  --tr-muted: #8a8a8e;
+
+  --tr-blue: #81cdf0;
+  --tr-pink: #ee7272;
+  --tr-amber: #f5a95c;
+  --tr-teal: #4c9f8d;
+  --tr-indigo: #6477ff;
+  --tr-green: #47c37c;
+  --tr-red: #f2544a;
+  --tr-control: #101012;
+  --tr-control-active: #2f2f35;
+  --tr-control-hover: #1d1d21;
+  --tr-track: #232327;
+}
+
+#view-trend-analysis {
+  background: var(--tr-page);
+  font-family: var(--font-primary);
+}
+
+.tr-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  align-items: start;
+}
+
+.tr-card {
+  background: var(--tr-card);
+  border: 1px solid var(--tr-border);
+  border-radius: 14px;
+  padding: 20px 22px 22px;
+  min-width: 0;
+}
+
+.tr-card--wide {
+  grid-column: 1 / -1;
+}
+
+/* ---- Card header ------------------------------------------------------- */
+.tr-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.tr-card-titles {
+  min-width: 0;
+}
+
+.tr-card-title {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--tr-heading);
+  letter-spacing: -0.1px;
+}
+
+.tr-card-sub {
+  font-size: 11.5px;
+  color: var(--tr-muted);
+  line-height: 1.5;
+  margin-top: 3px;
+}
+
+/* ---- Controls ---------------------------------------------------------- */
+.tr-seg {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  background: var(--tr-control);
+  border: 1px solid var(--tr-border);
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.tr-seg-btn {
+  border: none;
+  background: transparent;
+  color: var(--tr-muted);
+  font-family: var(--font-primary);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 11px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.tr-seg-btn:hover {
+  color: var(--tr-body);
+}
+
+.tr-seg-btn.active {
+  background: var(--tr-control-active);
+  color: var(--tr-heading);
+}
+
+.tr-select {
+  background: var(--tr-control);
+  border: 1px solid var(--tr-border);
+  border-radius: 999px;
+  color: var(--tr-body);
+  font-family: var(--font-primary);
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 5px 28px 5px 12px;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  flex-shrink: 0;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238a8a8e' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 9px center;
+}
+
+.tr-select option {
+  background: var(--tr-card);
+  color: var(--tr-heading);
+}
+
+.tr-menu-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.tr-kebab {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  background: transparent;
+  border: none;
+  padding: 6px 4px;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.tr-kebab span {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--tr-muted);
+  display: block;
+}
+
+.tr-kebab:hover span {
+  background: var(--tr-body);
+}
+
+.tr-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 5;
+  display: none;
+  flex-direction: column;
+  min-width: 132px;
+  padding: 5px;
+  background: var(--tr-control);
+  border: 1px solid var(--tr-border);
+  border-radius: 10px;
+  box-shadow: var(--shadow-md);
+}
+
+.tr-menu.open {
+  display: flex;
+}
+
+.tr-menu-item {
+  background: transparent;
+  border: none;
+  text-align: left;
+  color: var(--tr-body);
+  font-family: var(--font-primary);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 7px 10px;
+  border-radius: 7px;
+  cursor: pointer;
+}
+
+.tr-menu-item:hover {
+  background: var(--tr-control-hover);
+  color: var(--tr-heading);
+}
+
+.tr-menu-item.active {
+  color: var(--tr-green);
+}
+
+/* ---- Headline numbers -------------------------------------------------- */
+.tr-headline {
+  margin-bottom: 10px;
+}
+
+.tr-headline-label {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--tr-muted);
+}
+
+.tr-headline-value {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--tr-heading);
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+}
+
+.tr-headline-value.is-good { color: var(--tr-teal); }
+.tr-headline-value.is-bad { color: var(--tr-pink); }
+
+.tr-delta {
+  font-size: 11.5px;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.tr-delta.is-good { color: var(--tr-green); }
+.tr-delta.is-bad { color: var(--tr-pink); }
+
+/* ---- Legends ----------------------------------------------------------- */
+.tr-legend {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.tr-legend--stack {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  margin-bottom: 0;
+  min-width: 0;
+  flex: 1;
+}
+
+.tr-legend--wrap {
+  margin-bottom: 0;
+  gap: 8px 18px;
+  justify-content: flex-end;
+}
+
+.tr-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11.5px;
+  min-width: 0;
+}
+
+.tr-legend-label {
+  color: var(--tr-body);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tr-legend--stack .tr-legend-label {
+  flex: 1;
+}
+
+.tr-legend-value {
+  color: var(--tr-heading);
+  font-weight: 600;
+  font-family: var(--font-mono);
+}
+
+.tr-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ---- Chart mounts ------------------------------------------------------ */
+.tr-mount {
+  width: 100%;
+  min-width: 0;
+}
+
+.tr-svg {
+  display: block;
+  max-width: 100%;
+  overflow: visible;
+}
+
+.tr-donut-wrap {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.tr-mount--donut {
+  width: auto;
+  flex-shrink: 0;
+}
+
+.tr-mount--gauge {
+  margin-bottom: 4px;
+}
+
+.tr-mount--alloc {
+  margin-top: 14px;
+}
+
+/* ---- SVG text classes -------------------------------------------------- */
+.tr-t-muted {
+  font-family: var(--font-primary);
+  font-size: 10px;
+  font-weight: 600;
+  fill: var(--tr-muted);
+  letter-spacing: 0.3px;
+}
+
+.tr-t-green {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  fill: var(--tr-green);
+}
+
+.tr-t-big {
+  font-family: var(--font-primary);
+  font-size: 22px;
+  font-weight: 700;
+  fill: var(--tr-heading);
+  letter-spacing: -0.5px;
+}
+
+/* ---- Gauge breakdown list ---------------------------------------------- */
+.tr-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding-top: 14px;
+  border-top: 1px solid var(--tr-border);
+}
+
+.tr-breakdown-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 12px;
+}
+
+.tr-breakdown-label {
+  flex: 1;
+  color: var(--tr-body);
+}
+
+.tr-breakdown-value {
+  color: var(--tr-heading);
+  font-weight: 600;
+  font-family: var(--font-mono);
+}
+
+/* ---- Allocation card header ------------------------------------------- */
+.tr-alloc-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+/* --------------------------------------------------------------------------
+   TREND DASHBOARD — ENTRANCE MICRO-ANIMATIONS
+   Each chart grows from zero to its value on first reveal and whenever the
+   selected cycle or range changes. Resize redraws deliberately skip these, so
+   the charts don't replay every time the column width shifts.
+   -------------------------------------------------------------------------- */
+@keyframes tr-grow-y { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes tr-grow-x { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes tr-pop { from { opacity: 0; transform: scale(0.35); } to { opacity: 1; transform: scale(1); } }
+@keyframes tr-draw { to { stroke-dashoffset: 0; } }
+@keyframes tr-fade { from { opacity: 0; } to { opacity: 1; } }
+
+.tr-anim-grow-y,
+.tr-anim-grow-x,
+.tr-anim-pop {
+  transform-box: fill-box;
+}
+
+.tr-anim-grow-y {
+  transform-origin: bottom;
+  animation: tr-grow-y 600ms cubic-bezier(0.22, 0.8, 0.3, 1) both;
+}
+
+.tr-anim-grow-x {
+  transform-origin: left;
+  animation: tr-grow-x 640ms cubic-bezier(0.22, 0.8, 0.3, 1) both;
+}
+
+.tr-anim-pop {
+  transform-origin: center;
+  animation: tr-pop 380ms cubic-bezier(0.34, 1.3, 0.5, 1) both;
+}
+
+/* Paths carry pathLength="1", so one dash unit spans the whole arc. */
+.tr-anim-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: tr-draw 900ms cubic-bezier(0.25, 0.8, 0.3, 1) both;
+}
+
+.tr-anim-fade {
+  animation: tr-fade 450ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tr-anim-grow-y,
+  .tr-anim-grow-x,
+  .tr-anim-pop,
+  .tr-anim-draw,
+  .tr-anim-fade {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}
